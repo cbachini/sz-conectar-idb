@@ -14,11 +14,33 @@ if (!defined('ABSPATH')) {
 class SZ_Conectar_IDB_Admin {
 
     /**
-     * Initialize the class and set its properties.
+     * The ID of this plugin.
+     *
+     * @var string $plugin_name
      */
-    public function __construct() {
+    private $plugin_name;
+
+    /**
+     * The version of this plugin.
+     *
+     * @var string $version
+     */
+    private $version;
+
+    /**
+     * Initialize the class and set its properties.
+     *
+     * @param string $plugin_name The name of this plugin.
+     * @param string $version     The version of this plugin.
+     */
+    public function __construct($plugin_name, $version) {
+        $this->plugin_name = $plugin_name;
+        $this->version = $version;
+
+        // Hooks
         add_action('admin_menu', array($this, 'add_plugin_admin_menu'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
     }
 
     /**
@@ -43,67 +65,34 @@ class SZ_Conectar_IDB_Admin {
             'sz-conectar-idb-access-phrases',
             array($this, 'display_access_phrases_page')
         );
+    }
 
-        add_submenu_page(
-            'sz-conectar-idb',
-            __('Código para o Professor', 'sz-conectar-idb'),
-            __('Código para o Professor', 'sz-conectar-idb'),
-            'manage_options',
-            'sz-conectar-idb-teacher-codes',
-            array($this, 'display_teacher_codes_page')
-        );
-
-        add_submenu_page(
-            'sz-conectar-idb',
-            __('Códigos de Degustação', 'sz-conectar-idb'),
-            __('Códigos de Degustação', 'sz-conectar-idb'),
-            'manage_options',
-            'sz-conectar-idb-tasting-codes',
-            array($this, 'display_tasting_codes_page')
+    /**
+     * Enqueue admin styles.
+     *
+     * @since 1.0.0
+     */
+    public function enqueue_styles() {
+        wp_enqueue_style(
+            'sz-conectar-idb-admin-css',
+            plugin_dir_url(__FILE__) . 'css/sz-conectar-idb-admin.css',
+            array(),
+            $this->version,
+            'all'
         );
     }
 
     /**
-     * Enqueue styles and scripts for the admin area.
+     * Enqueue admin scripts.
+     *
+     * @since 1.0.0
      */
-    public function enqueue_admin_assets($hook_suffix) {
-        // Verifica se a página pertence ao plugin.
-        if (strpos($hook_suffix, 'sz-conectar-idb') === false) {
-            return;
-        }
-
-        // Carregar Bootstrap CSS
-        wp_enqueue_style(
-            'bootstrap-css',
-            'https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css',
-            array(),
-            '5.3.0',
-            'all'
-        );
-
-        // Carregar Bootstrap JS
-        wp_enqueue_script(
-            'bootstrap-js',
-            'https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js',
-            array('jquery'),
-            '5.3.0',
-            true
-        );
-
-        // Carregar CSS e JS customizados do plugin
-        wp_enqueue_style(
-            'sz-conectar-idb-admin-css',
-            plugin_dir_url(__FILE__) . 'css/sz-conectar-idb-admin.css',
-            array('bootstrap-css'),
-            '1.0.0',
-            'all'
-        );
-
+    public function enqueue_scripts() {
         wp_enqueue_script(
             'sz-conectar-idb-admin-js',
             plugin_dir_url(__FILE__) . 'js/sz-conectar-idb-admin.js',
-            array('jquery', 'bootstrap-js'),
-            '1.0.0',
+            array('jquery'),
+            $this->version,
             true
         );
     }
@@ -112,42 +101,16 @@ class SZ_Conectar_IDB_Admin {
      * Display the dashboard page for the SZ Conectar IDB plugin.
      */
     public function display_admin_dashboard() {
-        echo '<div class="wrap"><h1>' . esc_html(__('SZ Conectar IDB Dashboard', 'sz-conectar-idb')) . '</h1></div>';
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Welcome to SZ Conectar IDB', 'sz-conectar-idb') . '</h1>';
+        echo '<p>' . esc_html__('Manage the settings of your plugin here.', 'sz-conectar-idb') . '</p>';
+        echo '</div>';
     }
 
     /**
-     * Display the Frases de Acesso page.
+     * Display the "Frases de Acesso" page.
      */
     public function display_access_phrases_page() {
         include plugin_dir_path(__FILE__) . 'partials/access-phrases.php';
     }
-
-    /**
-     * Display the Código para o Professor page.
-     */
-    public function display_teacher_codes_page() {
-        include plugin_dir_path(__FILE__) . 'partials/teacher-codes.php';
-    }
-
-    /**
-     * Display the Códigos de Degustação page.
-     */
-    public function display_tasting_codes_page() {
-        include plugin_dir_path(__FILE__) . 'partials/tasting-codes.php';
-    }
-}
-
-/**
- * Enqueue admin styles.
- *
- * @since 1.0.0
- */
-public function enqueue_styles() {
-    wp_enqueue_style(
-        'sz-conectar-idb-admin-css',
-        plugin_dir_url(__FILE__) . 'css/sz-conectar-idb-admin.css',
-        array(),
-        '1.0.0',
-        'all'
-    );
 }
