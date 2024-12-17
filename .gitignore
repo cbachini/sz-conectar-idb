@@ -1,0 +1,20 @@
+# Ignorar diretórios do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs e cache
+*.log
+cache/
+debug.log
+
+# Ignorar configurações locais
+wp-config.php
+
+# Ignorar pastas de plugins e temas compilados (opcional)
+node_modules/
+vendor/
+
+# Ignorar pastas de build locais
+*.zip
+*.tar.gz
+
