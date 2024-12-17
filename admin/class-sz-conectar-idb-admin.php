@@ -136,3 +136,18 @@ class SZ_Conectar_IDB_Admin {
         include plugin_dir_path(__FILE__) . 'partials/tasting-codes.php';
     }
 }
+
+/**
+ * Enqueue admin styles.
+ *
+ * @since 1.0.0
+ */
+public function enqueue_styles() {
+    wp_enqueue_style(
+        'sz-conectar-idb-admin-css',
+        plugin_dir_url(__FILE__) . 'css/sz-conectar-idb-admin.css',
+        array(),
+        '1.0.0',
+        'all'
+    );
+}
