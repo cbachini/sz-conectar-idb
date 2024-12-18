@@ -50,12 +50,12 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
 ?>
 
 <div class="container mt-4">
-    <h1 class="text-primary mb-4"><?php echo esc_html(__('Códigos para o Professor', 'sz-conectar-idb')); ?></h1>
-
+    <h1 class="text-primary"><?php echo esc_html(__('Códigos para o Professor', 'sz-conectar-idb')); ?></h1>
+    
     <!-- Formulário -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><?php echo esc_html(__('Adicionar Novo Código', 'sz-conectar-idb')); ?></h5>
+            <?php echo esc_html(__('Adicionar Novo Código', 'sz-conectar-idb')); ?>
         </div>
         <div class="card-body">
             <form method="post" action="">
@@ -69,20 +69,20 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
         </div>
     </div>
 
-    <!-- Tabela -->
+    <!-- Tabela com os Códigos Existentes -->
     <div class="card">
         <div class="card-header bg-secondary text-white">
-            <h5 class="mb-0"><?php echo esc_html(__('Códigos Existentes', 'sz-conectar-idb')); ?></h5>
+            <?php echo esc_html(__('Códigos Existentes', 'sz-conectar-idb')); ?>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-striped table-hover">
+            <table class="table table-striped table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th scope="col">#</th>
-                        <th scope="col"><?php echo esc_html(__('Código', 'sz-conectar-idb')); ?></th>
-                        <th scope="col"><?php echo esc_html(__('Criado em', 'sz-conectar-idb')); ?></th>
-                        <th scope="col"><?php echo esc_html(__('Atualizado em', 'sz-conectar-idb')); ?></th>
-                        <th scope="col"><?php echo esc_html(__('Ações', 'sz-conectar-idb')); ?></th>
+                        <th scope="col"><?php echo esc_html__('#', 'sz-conectar-idb'); ?></th>
+                        <th scope="col"><?php echo esc_html__('Código', 'sz-conectar-idb'); ?></th>
+                        <th scope="col"><?php echo esc_html__('Criado em', 'sz-conectar-idb'); ?></th>
+                        <th scope="col"><?php echo esc_html__('Atualizado em', 'sz-conectar-idb'); ?></th>
+                        <th scope="col"><?php echo esc_html__('Ações', 'sz-conectar-idb'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,14 +95,14 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
                                 <td><?php echo esc_html($code->updated_at); ?></td>
                                 <td>
                                     <button class="btn btn-danger btn-sm" onclick="deleteTeacherCode(<?php echo esc_js($code->id); ?>)">
-                                        <?php echo esc_html(__('Excluir', 'sz-conectar-idb')); ?>
+                                        <?php echo esc_html__('Excluir', 'sz-conectar-idb'); ?>
                                     </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5" class="text-center"><?php echo esc_html(__('Nenhum código encontrado.', 'sz-conectar-idb')); ?></td>
+                            <td colspan="5" class="text-center"><?php echo esc_html__('Nenhum código encontrado.', 'sz-conectar-idb'); ?></td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -111,7 +111,6 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
     </div>
 </div>
 
-<!-- Script de Deleção -->
 <script type="text/javascript">
     function deleteTeacherCode(id) {
         if (confirm('<?php echo esc_js(__('Tem certeza que deseja excluir este código?', 'sz-conectar-idb')); ?>')) {
