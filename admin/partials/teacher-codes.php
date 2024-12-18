@@ -16,9 +16,9 @@ if (!current_user_can('manage_options')) {
     wp_die(__('You do not have sufficient permissions to access this page.', 'sz-conectar-idb'));
 }
 
-// Table name for storing teacher codes.
+// Table name for storing access codes.
 global $wpdb;
-$table_name = $wpdb->prefix . 'teacher_codes';
+$table_name = $wpdb->prefix . 'access_codes';
 
 // Handle form submission for adding a new teacher code.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_teacher_code_nonce']) && wp_verify_nonce($_POST['new_teacher_code_nonce'], 'add_teacher_code')) {
@@ -29,12 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_teacher_code_nonc
     if (!empty($school_name) && !empty($teacher_code) && $max_uses > 0) {
         $wpdb->insert($table_name, [
             'school_name'   => $school_name,
-            'teacher_code'  => $teacher_code,
+            'access_code'   => $teacher_code,
             'max_uses'      => $max_uses,
             'current_uses'  => 0,
-            'is_active'     => 1,
-            'created_at'    => current_time('mysql'),
-            'updated_at'    => current_time('mysql')
+            'is_active'     => 1
         ]);
 
         echo '<div class="notice notice-success is-dismissible"><p>' . __('Teacher code added successfully!', 'sz-conectar-idb') . '</p></div>';
@@ -43,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_teacher_code_nonc
     }
 }
 
-// Fetch existing teacher codes.
-$teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC");
+// Fetch existing teacher codes from access_codes table.
+$teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
 
 ?>
 
@@ -79,7 +77,7 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
             <tr>
                 <th><?php echo esc_html(__('ID', 'sz-conectar-idb')); ?></th>
                 <th><?php echo esc_html(__('Nome da Escola', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Código do Professor', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Código', 'sz-conectar-idb')); ?></th>
                 <th><?php echo esc_html(__('Máximo de Usos', 'sz-conectar-idb')); ?></th>
                 <th><?php echo esc_html(__('Usos Atuais', 'sz-conectar-idb')); ?></th>
                 <th><?php echo esc_html(__('Ativo', 'sz-conectar-idb')); ?></th>
@@ -92,7 +90,7 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
                     <tr>
                         <td><?php echo esc_html($code->id); ?></td>
                         <td><?php echo esc_html($code->school_name); ?></td>
-                        <td><?php echo esc_html($code->teacher_code); ?></td>
+                        <td><?php echo esc_html($code->access_code); ?></td>
                         <td><?php echo esc_html($code->max_uses); ?></td>
                         <td><?php echo esc_html($code->current_uses); ?></td>
                         <td><?php echo $code->is_active ? esc_html__('Sim', 'sz-conectar-idb') : esc_html__('Não', 'sz-conectar-idb'); ?></td>
