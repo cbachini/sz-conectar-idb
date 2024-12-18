@@ -96,8 +96,8 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
             <thead>
                 <tr>
                     <th style="width: 2%;"><input type="checkbox" id="select-all"></th>
-                    <th><?php _e('ID', 'sz-conectar-idb'); ?></th>
-                    <th><?php _e('Nome da Escola', 'sz-conectar-idb'); ?></th>
+                    <th style="width: 5%;"><?php _e('ID', 'sz-conectar-idb'); ?></th>
+                    <th style="width: 25%;"><?php _e('Nome da Escola', 'sz-conectar-idb'); ?></th>
                     <th><?php _e('Código de Acesso', 'sz-conectar-idb'); ?></th>
                     <th><?php _e('Máximo de Usos', 'sz-conectar-idb'); ?></th>
                     <th><?php _e('Usos Atuais', 'sz-conectar-idb'); ?></th>
@@ -115,7 +115,7 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
                         <td><?php echo esc_html($code->max_uses); ?></td>
                         <td><?php echo esc_html($code->current_uses); ?></td>
                         <td><?php echo $code->is_active ? __('Sim', 'sz-conectar-idb') : __('Não', 'sz-conectar-idb'); ?></td>
-                        <td><?php echo $code->valid_until ? esc_html($code->valid_until) : '—'; ?></td>
+                        <td><?php echo $code->valid_until ? date_i18n('d/m/Y', strtotime($code->valid_until)) : '—'; ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
