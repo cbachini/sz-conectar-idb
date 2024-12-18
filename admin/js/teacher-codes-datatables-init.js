@@ -1,9 +1,18 @@
-jQuery(document).ready(function ($) {
+jQuery(document).ready(function($) {
     $('#teacher-codes-table').DataTable({
-        "pageLength": 20, // Paginação de 20 em 20
-        "order": [[0, "asc"]], // Ordena pela primeira coluna (ID) em ordem crescente
+        "paging": true,
+        "ordering": true,
+        "searching": true,
+        "order": [[ 0, "desc" ]],
         "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/Portuguese-Brasil.json"
+            "emptyTable": "<?php echo esc_js(__('Nenhum dado disponível na tabela', 'sz-conectar-idb')); ?>",
+            "search": "<?php echo esc_js(__('Buscar', 'sz-conectar-idb')); ?>:",
+            "lengthMenu": "<?php echo esc_js(__('Mostrar _MENU_ entradas', 'sz-conectar-idb')); ?>",
+            "paginate": {
+                "previous": "<?php echo esc_js(__('Anterior', 'sz-conectar-idb')); ?>",
+                "next": "<?php echo esc_js(__('Próximo', 'sz-conectar-idb')); ?>"
+            }
         }
     });
 });
+

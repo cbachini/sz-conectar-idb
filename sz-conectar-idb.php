@@ -259,5 +259,19 @@ function validar_charada_resposta()
     }
 }
 
+function sz_conectar_idb_update_db() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'access_codes';
+
+    // Verifica se a coluna valid_until existe
+    $row = $wpdb->get_results("SHOW COLUMNS FROM `$table_name` LIKE 'valid_until'");
+
+    if (empty($row)) {
+        // Adiciona a coluna valid_until
+        $wpdb->query("ALTER TABLE `$table_name` ADD `valid_until` DATE NULL AFTER `is_active`");
+    }
+}
+register_activation_hook(__FILE__, 'sz_conectar_idb_update_db');
+
 add_action('wp_ajax_validar_charada_resposta', 'validar_charada_resposta');
 add_action('wp_ajax_nopriv_validar_charada_resposta', 'validar_charada_resposta');
