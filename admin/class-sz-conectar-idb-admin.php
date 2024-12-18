@@ -1,10 +1,9 @@
 <?php
 
 /**
- * The admin-specific functionality of the plugin.
+ * Class responsible for managing admin menus and pages.
  *
- * @package    Sz_Conectar_IDB
- * @subpackage Sz_Conectar_IDB/admin
+ * @package Sz_Conectar_IDB
  */
 
 if (!defined('ABSPATH')) {
@@ -13,84 +12,100 @@ if (!defined('ABSPATH')) {
 
 class SZ_Conectar_IDB_Admin {
 
-    /**
-     * The ID of this plugin.
-     *
-     * @var string $plugin_name
-     */
     private $plugin_name;
-
-    /**
-     * The version of this plugin.
-     *
-     * @var string $version
-     */
     private $version;
 
     /**
      * Initialize the class and set its properties.
-     *
-     * @param string $plugin_name The name of this plugin.
-     * @param string $version     The version of this plugin.
      */
     public function __construct($plugin_name, $version) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
 
         // Hooks
-        add_action('admin_menu', array($this, 'add_plugin_admin_menu'));
+        add_action('admin_menu', array($this, 'add_menus'));
+        add_action('admin_head', array($this, 'add_custom_emoji_icon'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
     }
 
     /**
-     * Register the administration menu for this plugin.
+     * Register the main admin menu and submenus.
      */
-    public function add_plugin_admin_menu() {
+    public function add_menus() {
+        // Menu principal: Mixirica
         add_menu_page(
-            __('SZ Conectar IDB', 'sz-conectar-idb'),
-            __('SZ Conectar IDB', 'sz-conectar-idb'),
+            __('Mixirica', 'sz-conectar-idb'),
+            __('Mixirica', 'sz-conectar-idb'),
             'manage_options',
-            'sz-conectar-idb',
-            array($this, 'display_admin_dashboard'),
-            'dashicons-welcome-learn-more',
-            20
+            'mixirica',
+            array($this, 'render_main_page'),
+            '', // Nenhum ícone inicial, será substituído por CSS
+            25
         );
 
+        // Submenu: Frases de Acesso
         add_submenu_page(
-            'sz-conectar-idb',
+            'mixirica',
             __('Frases de Acesso', 'sz-conectar-idb'),
             __('Frases de Acesso', 'sz-conectar-idb'),
             'manage_options',
-            'sz-conectar-idb-access-phrases',
-            array($this, 'display_access_phrases_page')
+            'frases_acesso',
+            array($this, 'render_access_phrases_page')
+        );
+
+        // Submenu: Códigos para o Professor
+        add_submenu_page(
+            'mixirica',
+            __('Códigos para o Professor', 'sz-conectar-idb'),
+            __('Códigos para o Professor', 'sz-conectar-idb'),
+            'manage_options',
+            'codigos_professor',
+            array($this, 'render_teacher_codes_page')
+        );
+
+        // Submenu: Códigos de Degustação
+        add_submenu_page(
+            'mixirica',
+            __('Códigos de Degustação', 'sz-conectar-idb'),
+            __('Códigos de Degustação', 'sz-conectar-idb'),
+            'manage_options',
+            'codigos_degustacao',
+            array($this, 'render_tasting_codes_page')
         );
     }
 
     /**
+     * Add custom CSS to display an emoji as the menu icon.
+     */
+    public function add_custom_emoji_icon() {
+        echo '<style>
+            #adminmenu .toplevel_page_mixirica div.wp-menu-image:before {
+                content: "🍊";
+                font-size: 20px;
+            }
+        </style>';
+    }
+
+    /**
      * Enqueue admin styles.
-     *
-     * @since 1.0.0
      */
     public function enqueue_styles() {
         wp_enqueue_style(
-            'sz-conectar-idb-admin-css',
-            plugin_dir_url(__FILE__) . 'css/sz-conectar-idb-admin.css',
+            $this->plugin_name,
+            plugin_dir_url(__FILE__) . '../css/sz-conectar-idb-admin.css',
             array(),
-            $this->version,
-            'all'
+            $this->version
         );
     }
 
     /**
      * Enqueue admin scripts.
-     *
-     * @since 1.0.0
      */
     public function enqueue_scripts() {
         wp_enqueue_script(
-            'sz-conectar-idb-admin-js',
-            plugin_dir_url(__FILE__) . 'js/sz-conectar-idb-admin.js',
+            $this->plugin_name,
+            plugin_dir_url(__FILE__) . '../js/sz-conectar-idb-admin.js',
             array('jquery'),
             $this->version,
             true
@@ -98,19 +113,33 @@ class SZ_Conectar_IDB_Admin {
     }
 
     /**
-     * Display the dashboard page for the SZ Conectar IDB plugin.
+     * Render the main Mixirica dashboard page.
      */
-    public function display_admin_dashboard() {
+    public function render_main_page() {
         echo '<div class="wrap">';
-        echo '<h1>' . esc_html__('Welcome to SZ Conectar IDB', 'sz-conectar-idb') . '</h1>';
-        echo '<p>' . esc_html__('Manage the settings of your plugin here.', 'sz-conectar-idb') . '</p>';
+        echo '<h1>' . esc_html__('Bem-vindo ao Mixirica', 'sz-conectar-idb') . '</h1>';
+        echo '<p>' . esc_html__('Selecione uma opção no menu para gerenciar o conteúdo.', 'sz-conectar-idb') . '</p>';
         echo '</div>';
     }
 
     /**
-     * Display the "Frases de Acesso" page.
+     * Render the Frases de Acesso page.
      */
-    public function display_access_phrases_page() {
-        include plugin_dir_path(__FILE__) . 'partials/access-phrases.php';
+    public function render_access_phrases_page() {
+        include plugin_dir_path(__FILE__) . 'partials/phrases-table.php';
+    }
+
+    /**
+     * Render the Códigos para o Professor page.
+     */
+    public function render_teacher_codes_page() {
+        include plugin_dir_path(__FILE__) . 'partials/codes-table.php';
+    }
+
+    /**
+     * Render the Códigos de Degustação page.
+     */
+    public function render_tasting_codes_page() {
+        include plugin_dir_path(__FILE__) . 'partials/tasting-codes-table.php';
     }
 }
