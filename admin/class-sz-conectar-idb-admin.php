@@ -17,6 +17,9 @@ class SZ_Conectar_IDB_Admin {
 
     /**
      * Initialize the class and set its properties.
+     *
+     * @param string $plugin_name The name of the plugin.
+     * @param string $version     The version of this plugin.
      */
     public function __construct($plugin_name, $version) {
         $this->plugin_name = $plugin_name;
@@ -35,23 +38,13 @@ class SZ_Conectar_IDB_Admin {
     public function add_menus() {
         // Menu principal: Mixirica com página Painel
         add_menu_page(
-            __('Painel', 'sz-conectar-idb'), // Título da página
-            __('Mixirica', 'sz-conectar-idb'), // Nome do menu
+            __('Painel Principal', 'sz-conectar-idb'),
+            __('Mixirica', 'sz-conectar-idb'),
             'manage_options',
             'mixirica',
-            array($this, 'render_main_dashboard'), // Callback da página principal
-            '', // Ícone via CSS
+            array($this, 'render_main_dashboard'),
+            '', // Ícone será adicionado via CSS
             25
-        );
-
-        // Submenu: Painel (redundante mas explícito para organização)
-        add_submenu_page(
-            'mixirica',
-            __('Painel', 'sz-conectar-idb'),
-            __('Painel', 'sz-conectar-idb'),
-            'manage_options',
-            'mixirica',
-            array($this, 'render_main_dashboard')
         );
 
         // Submenu: Frases de Acesso
@@ -126,30 +119,27 @@ class SZ_Conectar_IDB_Admin {
      * Render the main Mixirica dashboard page (Painel).
      */
     public function render_main_dashboard() {
-        echo '<div class="wrap">';
-        echo '<h1>' . esc_html__('Mixirica - Painel Principal', 'sz-conectar-idb') . '</h1>';
-        echo '<p>' . esc_html__('Bem-vindo ao painel principal do Mixirica. Escolha uma opção no menu.', 'sz-conectar-idb') . '</p>';
-        echo '</div>';
+        include plugin_dir_path(__FILE__) . 'partials/main-panel.php';
     }
 
     /**
      * Render the Frases de Acesso page.
      */
     public function render_access_phrases_page() {
-        include plugin_dir_path(__FILE__) . 'partials/phrases-table.php';
+        include plugin_dir_path(__FILE__) . 'partials/access-phrases.php';
     }
 
     /**
      * Render the Códigos para o Professor page.
      */
     public function render_teacher_codes_page() {
-        include plugin_dir_path(__FILE__) . 'partials/codes-table.php';
+        include plugin_dir_path(__FILE__) . 'partials/teacher-codes.php';
     }
 
     /**
      * Render the Códigos de Degustação page.
      */
     public function render_tasting_codes_page() {
-        include plugin_dir_path(__FILE__) . 'partials/tasting-codes-table.php';
+        include plugin_dir_path(__FILE__) . 'partials/tasting-codes.php';
     }
 }
