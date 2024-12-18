@@ -30,6 +30,7 @@ class SZ_Conectar_IDB_Admin {
         add_action('admin_head', array($this, 'add_custom_emoji_icon'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_action('wp_ajax_apply_bulk_teacher_codes', array($this, 'handle_bulk_teacher_codes'));
     }
 
     /**
@@ -130,6 +131,34 @@ class SZ_Conectar_IDB_Admin {
                 null,
                 true
             );
+        }
+    }
+
+    /**
+     * Handle bulk actions for Teacher Codes (Activate/Deactivate).
+     */
+    public function handle_bulk_teacher_codes() {
+        global $wpdb;
+
+        // Verify nonce for security
+        check_ajax_referer('bulk_teacher_codes_action', 'security');
+
+        $action = sanitize_text_field($_POST['bulk_action']);
+        $ids = array_map('intval', $_POST['selected_ids']);
+        $table_name = $wpdb->prefix . 'access_codes';
+
+        if (empty($ids)) {
+            wp_send_json_error(__('No IDs selected.', 'sz-conectar-idb'));
+        }
+
+        if ($action === 'activate') {
+            $wpdb->query("UPDATE $table_name SET is_active = 1 WHERE id IN (" . implode(',', $ids) . ")");
+            wp_send_json_success(__('Selected codes activated successfully.', 'sz-conectar-idb'));
+        } elseif ($action === 'deactivate') {
+            $wpdb->query("UPDATE $table_name SET is_active = 0 WHERE id IN (" . implode(',', $ids) . ")");
+            wp_send_json_success(__('Selected codes deactivated successfully.', 'sz-conectar-idb'));
+        } else {
+            wp_send_json_error(__('Invalid action.', 'sz-conectar-idb'));
         }
     }
 
