@@ -1,18 +1,51 @@
-jQuery(document).ready(function($) {
-    $('#teacher-codes-table').DataTable({
-        "paging": true,
-        "ordering": true,
-        "searching": true,
-        "order": [[ 0, "desc" ]],
-        "language": {
-            "emptyTable": "<?php echo esc_js(__('Nenhum dado disponível na tabela', 'sz-conectar-idb')); ?>",
-            "search": "<?php echo esc_js(__('Buscar', 'sz-conectar-idb')); ?>:",
-            "lengthMenu": "<?php echo esc_js(__('Mostrar _MENU_ entradas', 'sz-conectar-idb')); ?>",
-            "paginate": {
-                "previous": "<?php echo esc_js(__('Anterior', 'sz-conectar-idb')); ?>",
-                "next": "<?php echo esc_js(__('Próximo', 'sz-conectar-idb')); ?>"
-            }
+jQuery(document).ready(function ($) {
+    var table = $('#teacher-codes-table').DataTable({
+        ajax: {
+            url: ajaxurl, // URL do admin-ajax.php do WordPress
+            type: 'POST',
+            data: { action: 'fetch_teacher_codes' } // Ação para buscar os dados
+        },
+        processing: true,
+        serverSide: true,
+        columns: [
+            { data: 'id' },
+            { data: 'school_name' },
+            { data: 'access_code' },
+            { data: 'max_uses' },
+            { data: 'current_uses' },
+            { data: 'is_active', render: function (data) {
+                return data == 1 ? 'Sim' : 'Não';
+            }},
+            { data: 'valid_until' }
+        ],
+        order: [[0, 'asc']],
+        pageLength: 20
+    });
+
+    // Ações em lote
+    $('#bulk-action-apply').on('click', function () {
+        var selected_ids = [];
+        $('.row-checkbox:checked').each(function () {
+            selected_ids.push($(this).val());
+        });
+
+        var bulk_action = $('#bulk-action-select').val();
+        if (bulk_action && selected_ids.length > 0) {
+            $.post(ajaxurl, {
+                action: 'apply_bulk_teacher_codes',
+                bulk_action: bulk_action,
+                selected_ids: selected_ids,
+                security: $('#bulk-action-nonce').val()
+            }, function (response) {
+                if (response.success) {
+                    alert(response.data);
+                    table.ajax.reload(); // Recarrega os dados na tabela
+                } else {
+                    alert('Erro: ' + response.data);
+                }
+            });
+        } else {
+            alert('Selecione ao menos um item e uma ação.');
         }
     });
 });
-
