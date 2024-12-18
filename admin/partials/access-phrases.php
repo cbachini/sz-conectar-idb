@@ -53,25 +53,25 @@ $phrases = $wpdb->get_results("SELECT * FROM $table_name");
     <!-- Tabela de frases existentes -->
     <h2><?php echo esc_html__('Frases de Acesso Existentes', 'sz-conectar-idb'); ?></h2>
     <table id="access-phrases-table" class="wp-list-table widefat fixed striped">
-        <thead>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>ID do Grupo</th>
+            <th>Pergunta</th>
+            <th>Resposta</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($frases as $frase): ?>
             <tr>
-                <th><?php echo esc_html__('ID', 'sz-conectar-idb'); ?></th>
-                <th><?php echo esc_html__('ID do Grupo', 'sz-conectar-idb'); ?></th>
-                <th><?php echo esc_html__('Pergunta', 'sz-conectar-idb'); ?></th>
-                <th><?php echo esc_html__('Resposta', 'sz-conectar-idb'); ?></th>
+                <td><?php echo esc_html($frase->id); ?></td>
+                <td><?php echo esc_html($frase->grupo_id); ?></td>
+                <td><?php echo esc_html($frase->pergunta); ?></td>
+                <td><?php echo esc_html($frase->resposta); ?></td>
             </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($phrases as $phrase): ?>
-                <tr>
-                    <td><?php echo esc_html($phrase->id); ?></td>
-                    <td><?php echo esc_html($phrase->grupo_id); ?></td>
-                    <td><?php echo esc_html($phrase->pergunta); ?></td>
-                    <td><?php echo esc_html($phrase->resposta); ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 </div>
 
 <!-- DataTables Integration -->

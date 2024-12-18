@@ -117,13 +117,15 @@ class SZ_Conectar_IDB_Admin {
      * @param string $hook The current admin page hook.
      */
     public function enqueue_scripts($hook) {
-        // Enqueue DataTables only on the "Códigos para o Professor" page
-        if ($hook === 'mixirica_page_codigos_professor') {
+        // Verifica se estamos na página de Frases de Acesso
+        if ($hook === 'mixirica_page_frases_acesso') {
+            // Enfileirar o DataTables CSS
             wp_enqueue_style(
                 'datatables-css',
                 'https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css'
             );
-
+    
+            // Enfileirar o DataTables JS
             wp_enqueue_script(
                 'datatables-js',
                 'https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js',
@@ -131,10 +133,11 @@ class SZ_Conectar_IDB_Admin {
                 null,
                 true
             );
-
+    
+            // Enfileirar o script personalizado para inicializar o DataTables
             wp_enqueue_script(
-                'teacher-codes-init',
-                plugin_dir_url(__FILE__) . '../js/teacher-codes-datatables-init.js',
+                'access-phrases-init',
+                plugin_dir_url(__FILE__) . '../js/access-phrases-datatables-init.js',
                 array('jquery', 'datatables-js'),
                 null,
                 true
