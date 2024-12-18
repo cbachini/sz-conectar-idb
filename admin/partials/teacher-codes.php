@@ -132,11 +132,17 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
         $('#teacher-codes-table').DataTable({
             "order": [[0, "desc"]],
             "pageLength": 25, // Configura o padrão para 25 entradas
-            "lengthMenu": [ [10, 25, 50, 100], [10, 25, 50, 100] ]
+            "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+            }
         });
 
+        // Selecionar todos os checkboxes
         $('#select-all').on('click', function () {
             $('input[name="selected_codes[]"]').prop('checked', this.checked);
         });
     });
 </script>
+
+
