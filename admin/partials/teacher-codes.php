@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sz_add_teacher_code_n
 }
 
 // Retrieve existing teacher codes.
-$teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC");
+$teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
 ?>
 
 <div class="wrap">
@@ -77,13 +77,11 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
     <table id="teacher-codes-table" class="wp-list-table widefat fixed striped">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Code</th>
-                <th>Max Uses</th>
-                <th>Current Uses</th>
-                <th>Active</th>
-                <th>Created At</th>
-                <th>Updated At</th>
+                <th><?php echo esc_html(__('ID', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Code', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Max Uses', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Current Uses', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Active', 'sz-conectar-idb')); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -95,13 +93,11 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
                         <td><?php echo esc_html($code->max_uses); ?></td>
                         <td><?php echo esc_html($code->current_uses); ?></td>
                         <td><?php echo $code->is_active ? 'Yes' : 'No'; ?></td>
-                        <td><?php echo esc_html($code->created_at); ?></td>
-                        <td><?php echo esc_html($code->updated_at); ?></td>
                     </tr>
                 <?php endforeach; ?>
             <?php else : ?>
                 <tr>
-                    <td colspan="7"><?php echo esc_html(__('No teacher codes found.', 'sz-conectar-idb')); ?></td>
+                    <td colspan="5"><?php echo esc_html(__('No teacher codes found.', 'sz-conectar-idb')); ?></td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -115,7 +111,7 @@ jQuery(document).ready(function($) {
         "paging": true,
         "ordering": true,
         "searching": true,
-        "order": [[ 0, "asc" ]],
+        "order": [[ 0, "desc" ]],
         "language": {
             "emptyTable": "<?php echo esc_js(__('No data available in table', 'sz-conectar-idb')); ?>",
             "search": "<?php echo esc_js(__('Search', 'sz-conectar-idb')); ?>:",
