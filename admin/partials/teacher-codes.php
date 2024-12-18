@@ -72,42 +72,33 @@ $teacher_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC"
     <hr>
 
     <h2><?php echo esc_html(__('Códigos para o Professor Existentes', 'sz-conectar-idb')); ?></h2>
-    <table class="wp-list-table widefat fixed striped">
-        <thead>
+    <table id="teacher-codes-table" class="wp-list-table widefat fixed striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th><?php echo esc_html(__('Code', 'sz-conectar-idb')); ?></th>
+            <th><?php echo esc_html(__('Created At', 'sz-conectar-idb')); ?></th>
+            <th><?php echo esc_html(__('Updated At', 'sz-conectar-idb')); ?></th>
+            <th><?php echo esc_html(__('Actions', 'sz-conectar-idb')); ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($teacher_codes as $index => $code): ?>
             <tr>
-                <th><?php echo esc_html(__('ID', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Nome da Escola', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Código', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Máximo de Usos', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Usos Atuais', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Ativo', 'sz-conectar-idb')); ?></th>
-                <th><?php echo esc_html(__('Ações', 'sz-conectar-idb')); ?></th>
+                <td><?php echo esc_html($code->id); ?></td>
+                <td><?php echo esc_html($code->code); ?></td>
+                <td><?php echo esc_html($code->created_at); ?></td>
+                <td><?php echo esc_html($code->updated_at); ?></td>
+                <td>
+                    <a href="#" class="button button-secondary" onclick="deleteTeacherCode(<?php echo esc_js($code->id); ?>)">
+                        <?php echo esc_html(__('Delete', 'sz-conectar-idb')); ?>
+                    </a>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            <?php if (!empty($teacher_codes)): ?>
-                <?php foreach ($teacher_codes as $code): ?>
-                    <tr>
-                        <td><?php echo esc_html($code->id); ?></td>
-                        <td><?php echo esc_html($code->school_name); ?></td>
-                        <td><?php echo esc_html($code->access_code); ?></td>
-                        <td><?php echo esc_html($code->max_uses); ?></td>
-                        <td><?php echo esc_html($code->current_uses); ?></td>
-                        <td><?php echo $code->is_active ? esc_html__('Sim', 'sz-conectar-idb') : esc_html__('Não', 'sz-conectar-idb'); ?></td>
-                        <td>
-                            <button class="button button-danger" onclick="deleteTeacherCode(<?php echo esc_js($code->id); ?>)">
-                                <?php echo esc_html(__('Deletar', 'sz-conectar-idb')); ?>
-                            </button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="7"><?php echo esc_html(__('Nenhum código encontrado.', 'sz-conectar-idb')); ?></td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
 </div>
 
 <script type="text/javascript">
