@@ -102,42 +102,36 @@ class SZ_Conectar_IDB_Admin {
         );
     }
 
-/**
- * Enqueue admin scripts.
- *
- * @param string $hook The current admin page hook.
- */
-public function enqueue_scripts($hook) {
-    // Verifica se estamos na página de Códigos para o Professor
-    if (strpos($hook, 'codigos_professor') === false) {
-        return; // Sai da função se não for a página correta
+    /**
+     * Enqueue admin scripts.
+     *
+     * @param string $hook The current admin page hook.
+     */
+    public function enqueue_scripts($hook) {
+        // Enqueue DataTables only on the "Códigos para o Professor" page
+        if ($hook === 'mixirica_page_codigos_professor') {
+            wp_enqueue_style(
+                'datatables-css',
+                'https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css'
+            );
+
+            wp_enqueue_script(
+                'datatables-js',
+                'https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js',
+                array('jquery'),
+                null,
+                true
+            );
+
+            wp_enqueue_script(
+                'teacher-codes-init',
+                plugin_dir_url(__FILE__) . '../js/teacher-codes-datatables-init.js',
+                array('jquery', 'datatables-js'),
+                null,
+                true
+            );
+        }
     }
-
-    // Enfileirar o DataTables CSS
-    wp_enqueue_style(
-        'datatables-css',
-        'https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css'
-    );
-
-    // Enfileirar o DataTables JS
-    wp_enqueue_script(
-        'datatables-js',
-        'https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js',
-        array('jquery'),
-        null,
-        true
-    );
-
-    // Enfileirar o script personalizado para inicializar o DataTables
-    wp_enqueue_script(
-        'teacher-codes-datatables-init',
-        plugin_dir_url(__FILE__) . '../js/teacher-codes-datatables-init.js',
-        array('jquery', 'datatables-js'),
-        null,
-        true
-    );
-}
-    
 
     /**
      * Render the main Mixirica dashboard page (Painel).
