@@ -131,7 +131,8 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
     jQuery(document).ready(function ($) {
         $('#teacher-codes-table').DataTable({
             "order": [[0, "desc"]],
-            "pageLength": 20
+            "pageLength": 25, // Configura o padrão para 25 entradas
+            "lengthMenu": [ [10, 25, 50, 100], [10, 25, 50, 100] ]
         });
 
         $('#select-all').on('click', function () {
