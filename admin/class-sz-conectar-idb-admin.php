@@ -33,15 +33,25 @@ class SZ_Conectar_IDB_Admin {
      * Register the main admin menu and submenus.
      */
     public function add_menus() {
-        // Menu principal: Mixirica
+        // Menu principal: Mixirica com página Painel
         add_menu_page(
-            __('Mixirica', 'sz-conectar-idb'),
-            __('Mixirica', 'sz-conectar-idb'),
+            __('Painel', 'sz-conectar-idb'), // Título da página
+            __('Mixirica', 'sz-conectar-idb'), // Nome do menu
             'manage_options',
             'mixirica',
-            '', // Não renderiza página principal
-            '', // Sem ícone padrão
+            array($this, 'render_main_dashboard'), // Callback da página principal
+            '', // Ícone via CSS
             25
+        );
+
+        // Submenu: Painel (redundante mas explícito para organização)
+        add_submenu_page(
+            'mixirica',
+            __('Painel', 'sz-conectar-idb'),
+            __('Painel', 'sz-conectar-idb'),
+            'manage_options',
+            'mixirica',
+            array($this, 'render_main_dashboard')
         );
 
         // Submenu: Frases de Acesso
@@ -110,6 +120,16 @@ class SZ_Conectar_IDB_Admin {
             $this->version,
             true
         );
+    }
+
+    /**
+     * Render the main Mixirica dashboard page (Painel).
+     */
+    public function render_main_dashboard() {
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Mixirica - Painel Principal', 'sz-conectar-idb') . '</h1>';
+        echo '<p>' . esc_html__('Bem-vindo ao painel principal do Mixirica. Escolha uma opção no menu.', 'sz-conectar-idb') . '</p>';
+        echo '</div>';
     }
 
     /**
