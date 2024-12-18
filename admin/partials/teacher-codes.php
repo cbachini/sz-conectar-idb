@@ -83,7 +83,7 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
     <form method="post" action="">
         <h2><?php _e('Códigos Existentes', 'sz-conectar-idb'); ?></h2>
         <div style="margin-bottom: 10px;">
-            <select name="bulk_action">
+            <select name="bulk_action" id="bulk-action-select">
                 <option value=""><?php _e('Ações com Selecionados', 'sz-conectar-idb'); ?></option>
                 <option value="activate"><?php _e('Ativar', 'sz-conectar-idb'); ?></option>
                 <option value="deactivate"><?php _e('Desativar', 'sz-conectar-idb'); ?></option>
@@ -91,7 +91,8 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
             <button type="submit" name="bulk_action_apply" class="button"><?php _e('Aplicar', 'sz-conectar-idb'); ?></button>
         </div>
 
-        <table class="wp-list-table widefat fixed striped">
+        <!-- Tabela -->
+        <table id="teacher-codes-table" class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
                     <th style="width: 2%;"><input type="checkbox" id="select-all"></th>
@@ -122,10 +123,19 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
     </form>
 </div>
 
+<!-- Scripts -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
 <script>
-    // Selecionar todos os checkboxes
-    document.getElementById('select-all').addEventListener('change', function () {
-        var checkboxes = document.querySelectorAll('input[name="selected_codes[]"]');
-        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    jQuery(document).ready(function ($) {
+        $('#teacher-codes-table').DataTable({
+            "order": [[0, "desc"]],
+            "pageLength": 20
+        });
+
+        $('#select-all').on('click', function () {
+            $('input[name="selected_codes[]"]').prop('checked', this.checked);
+        });
     });
 </script>
