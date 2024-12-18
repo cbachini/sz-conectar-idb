@@ -39,8 +39,8 @@ class SZ_Conectar_IDB_Admin {
             __('Mixirica', 'sz-conectar-idb'),
             'manage_options',
             'mixirica',
-            array($this, 'render_main_page'),
-            '', // Nenhum ícone inicial, será substituído por CSS
+            '', // Não renderiza página principal
+            '', // Sem ícone padrão
             25
         );
 
@@ -110,16 +110,6 @@ class SZ_Conectar_IDB_Admin {
             $this->version,
             true
         );
-    }
-
-    /**
-     * Render the main Mixirica dashboard page.
-     */
-    public function render_main_page() {
-        echo '<div class="wrap">';
-        echo '<h1>' . esc_html__('Bem-vindo ao Mixirica', 'sz-conectar-idb') . '</h1>';
-        echo '<p>' . esc_html__('Selecione uma opção no menu para gerenciar o conteúdo.', 'sz-conectar-idb') . '</p>';
-        echo '</div>';
     }
 
     /**
