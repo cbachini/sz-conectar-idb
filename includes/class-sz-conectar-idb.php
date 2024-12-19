@@ -8,6 +8,7 @@ if (!class_exists('Sz_Conectar_Idb')) {
         public function __construct() {
             $this->load_dependencies();
             $this->define_ajax_hooks();
+            $this->define_admin_hooks();
             $this->define_shortcodes();
         }
 
@@ -23,6 +24,10 @@ if (!class_exists('Sz_Conectar_Idb')) {
             $this->loader->add_action('wp_ajax_nopriv_gerar_charada_ajax', 'Sz_Conectar_Idb_Shortcodes', 'gerar_charada_ajax');
             $this->loader->add_action('wp_ajax_validar_charada_resposta', 'Sz_Conectar_Idb_Shortcodes', 'validar_charada_resposta');
             $this->loader->add_action('wp_ajax_nopriv_validar_charada_resposta', 'Sz_Conectar_Idb_Shortcodes', 'validar_charada_resposta');
+        }
+
+        private function define_admin_hooks() {
+            $this->loader->add_action('admin_menu', 'Sz_Conectar_Idb_Admin', 'add_admin_menu');
         }
 
         private function define_shortcodes() {
