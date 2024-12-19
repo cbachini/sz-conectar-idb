@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Classe para gerenciamento de shortcodes.
+ * Classe para Gerenciamento de Shortcodes
  */
 class Sz_Conectar_Idb_Shortcodes {
 
@@ -27,12 +27,14 @@ class Sz_Conectar_Idb_Shortcodes {
             const grupoId = $('#numero-livro').text().trim();
 
             if (grupoId) {
+                $('#loading-message').show();
                 $.ajax({
                     url: '<?php echo admin_url("admin-ajax.php"); ?>',
                     type: 'POST',
                     dataType: 'json',
                     data: { action: 'gerar_charada_ajax', grupo_id: grupoId },
                     success: function (response) {
+                        $('#loading-message').hide();
                         if (response.success) {
                             $('#charada-id').val(response.data.id);
                             $('#charada-pergunta').text(response.data.pergunta);
@@ -41,6 +43,7 @@ class Sz_Conectar_Idb_Shortcodes {
                         }
                     },
                     error: function () {
+                        $('#loading-message').hide();
                         $('#result-message').html('<p style="color:red;"><?php _e("Erro ao carregar a charada. Tente novamente mais tarde.", "sz-conectar-idb"); ?></p>');
                     }
                 });
