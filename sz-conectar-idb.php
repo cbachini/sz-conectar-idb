@@ -22,6 +22,7 @@ define('SZ_CONECTAR_IDB_VERSION', '2.0.0');
 /**
  * Autoload classes and initialize the plugin.
  */
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-riddles.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortcodes.php';
@@ -30,6 +31,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortco
  * Initialize all components.
  */
 function sz_conectar_idb_init() {
+    Sz_Conectar_Idb_Admin::init();
     Sz_Conectar_Idb_Riddles::init();
     Sz_Conectar_Idb_Codes::init();
     Sz_Conectar_Idb_Shortcodes::init();
