@@ -81,14 +81,14 @@ add_action('wp_ajax_nopriv_validar_codigo_professor', 'validar_codigo_professor'
 function validar_charada_resposta() {
     global $wpdb;
 
-    if (isset($_POST['charada_id']) && isset($_POST['resposta'])) {
-        $charada_id = intval($_POST['charada_id']);
-        $resposta = sanitize_text_field($_POST['resposta']);
+    $id = isset($_POST['id']) ? intval($_POST['id']) : null;
+    $resposta = isset($_POST['resposta']) ? sanitize_text_field($_POST['resposta']) : '';
 
+    if (!empty($id) && !empty($resposta)) {
         $table_name = $wpdb->prefix . 'sz_access_phrases';
         $charada = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE id = %d AND resposta = %s",
-            $charada_id,
+            $id,
             $resposta
         ));
 
@@ -196,7 +196,7 @@ function gerar_charada_ajax() {
         ));
 
         if ($charada) {
-            $output = '<input type="hidden" name="charada_id" value="' . esc_attr($charada->id) . '">';
+            $output = '<input type="hidden" name="id" value="' . esc_attr($charada->id) . '">';
             $output .= '<p><strong>' . __('Charada:', 'sz-conectar-idb') . '</strong> ' . esc_html($charada->pergunta) . '</p>';
             $output .= '<input size="1" type="text" name="resposta" placeholder="' . __('Resposta', 'sz-conectar-idb') . '" required>';
             $output .= '<button type="submit" class="button-primary">' . __('Enviar', 'sz-conectar-idb') . '</button>';
