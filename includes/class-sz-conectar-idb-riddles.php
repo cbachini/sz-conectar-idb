@@ -61,5 +61,3 @@ class Sz_Conectar_Idb_Riddles {
         }
     }
 }
-
-Sz_Conectar_Idb_Riddles::init();

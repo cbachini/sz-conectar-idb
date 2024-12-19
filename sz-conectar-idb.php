@@ -17,11 +17,10 @@ if (!defined('WPINC')) {
     die;
 }
 
-// Define a versão do plugin
 define('SZ_CONECTAR_IDB_VERSION', '2.0.0');
 
 /**
- * Funções de ativação e desativação
+ * Ativação e Desativação do Plugin
  */
 function activate_sz_conectar_idb() {
     require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-activator.php';
@@ -37,8 +36,13 @@ register_activation_hook(__FILE__, 'activate_sz_conectar_idb');
 register_deactivation_hook(__FILE__, 'deactivate_sz_conectar_idb');
 
 /**
- * Inclui arquivos das funcionalidades
+ * Inclusão de Classes
  */
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-riddles.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortcodes.php';
+
+/**
+ * Inicialização
+ */
+Sz_Conectar_Idb_Riddles::init();
+Sz_Conectar_Idb_Shortcodes::init();
