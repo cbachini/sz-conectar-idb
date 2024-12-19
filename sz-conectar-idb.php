@@ -55,134 +55,110 @@ function run_sz_conectar_idb() {
 run_sz_conectar_idb();
 
 /**
- * AJAX Validation Function for Access Codes and Phrases.
+ * Functions Specific to Access Codes Validation
  */
-function validar_entrada() {
+function validar_codigo_professor() {
     global $wpdb;
 
-    $tipo = isset($_POST['tipo']) ? sanitize_text_field($_POST['tipo']) : '';
-    $entrada = isset($_POST['entrada']) ? sanitize_text_field($_POST['entrada']) : '';
+    $codigo = isset($_POST['codigo']) ? sanitize_text_field($_POST['codigo']) : '';
 
-    if (!empty($tipo) && !empty($entrada)) {
-        $table_name = $wpdb->prefix . ($tipo === 'codigo' ? 'sz_access_codes' : 'sz_access_phrases');
-        $coluna = $tipo === 'codigo' ? 'access_code' : 'resposta';
-        $condicao_adicional = $tipo === 'codigo' ? ' AND is_active = 1' : '';
+    if (!empty($codigo)) {
+        $table_name = $wpdb->prefix . 'sz_access_codes';
 
-        $item = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE $coluna = %s $condicao_adicional",
-            $entrada
+        $code = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE access_code = %s AND is_active = 1",
+            $codigo
         ));
 
-        if ($item) {
-            if ($tipo === 'codigo') {
-                // Check usage limit for access codes
-                if ($item->current_uses >= $item->max_uses) {
-                    wp_send_json_error(__('Código de acesso inválido ou já utilizado.', 'sz-conectar-idb'));
-                } else {
-                    $wpdb->update(
-                        "{$wpdb->prefix}sz_access_codes",
-                        ['current_uses' => $item->current_uses + 1],
-                        ['id' => $item->id]
-                    );
-                }
+        if ($code) {
+            if ($code->current_uses >= $code->max_uses) {
+                wp_send_json_error(__('Código de acesso inválido ou já utilizado.', 'sz-conectar-idb'));
+            } else {
+                $wpdb->update(
+                    $table_name,
+                    ['current_uses' => $code->current_uses + 1],
+                    ['id' => $code->id]
+                );
+                wp_send_json_success(__('Código de acesso válido.', 'sz-conectar-idb'));
             }
-            wp_send_json_success(__('Entrada válida.', 'sz-conectar-idb'));
         } else {
-            wp_send_json_error(__('Entrada inválida.', 'sz-conectar-idb'));
+            wp_send_json_error(__('Código de acesso inválido.', 'sz-conectar-idb'));
+        }
+    } else {
+        wp_send_json_error(__('Código não fornecido.', 'sz-conectar-idb'));
+    }
+}
+
+add_action('wp_ajax_validar_codigo_professor', 'validar_codigo_professor');
+add_action('wp_ajax_nopriv_validar_codigo_professor', 'validar_codigo_professor');
+
+/**
+ * Functions Specific to Tasting Codes Validation
+ */
+function validar_codigo_degustacao() {
+    global $wpdb;
+
+    $codigo = isset($_POST['codigo']) ? sanitize_text_field($_POST['codigo']) : '';
+
+    if (!empty($codigo)) {
+        $table_name = $wpdb->prefix . 'sz_tasting_codes';
+
+        $code = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE code = %s",
+            $codigo
+        ));
+
+        if ($code) {
+            wp_send_json_success(__('Código de degustação válido.', 'sz-conectar-idb'));
+        } else {
+            wp_send_json_error(__('Código de degustação inválido.', 'sz-conectar-idb'));
+        }
+    } else {
+        wp_send_json_error(__('Código não fornecido.', 'sz-conectar-idb'));
+    }
+}
+
+add_action('wp_ajax_validar_codigo_degustacao', 'validar_codigo_degustacao');
+add_action('wp_ajax_nopriv_validar_codigo_degustacao', 'validar_codigo_degustacao');
+
+/**
+ * Functions Specific to Phrases Validation and Riddle Generation
+ */
+function validar_frase_acesso() {
+    global $wpdb;
+
+    $resposta = isset($_POST['resposta']) ? sanitize_text_field($_POST['resposta']) : '';
+    $charada_id = isset($_POST['charada_id']) ? intval($_POST['charada_id']) : 0;
+
+    if (!empty($resposta) && $charada_id > 0) {
+        $table_name = $wpdb->prefix . 'sz_access_phrases';
+
+        $phrase = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d AND resposta = %s",
+            $charada_id,
+            $resposta
+        ));
+
+        if ($phrase) {
+            wp_send_json_success(__('Resposta correta!', 'sz-conectar-idb'));
+        } else {
+            wp_send_json_error(__('Resposta incorreta.', 'sz-conectar-idb'));
         }
     } else {
         wp_send_json_error(__('Dados insuficientes.', 'sz-conectar-idb'));
     }
 }
 
-add_action('wp_ajax_validar_entrada', 'validar_entrada');
-add_action('wp_ajax_nopriv_validar_entrada', 'validar_entrada');
+add_action('wp_ajax_validar_frase_acesso', 'validar_frase_acesso');
+add_action('wp_ajax_nopriv_validar_frase_acesso', 'validar_frase_acesso');
 
-/**
- * Shortcode for Generating Riddles and Content Blocking.
- */
-function gerar_charada_shortcode() {
-    ob_start();
-    ?>
-    <form id="charada-form">
-        <div id="charada-container">
-            <p><?php _e('Carregando charada...', 'sz-conectar-idb'); ?></p>
-        </div>
-        <div id="loading-message" style="display: none;"><?php _e('Verificando a resposta...', 'sz-conectar-idb'); ?></div>
-        <div id="result-message"></div>
-    </form>
-
-    <script type="text/javascript">
-        jQuery(document).ready(function ($) {
-            const grupoElement = document.getElementById('numero-livro');
-            if (grupoElement) {
-                const grupoId = grupoElement.innerText.trim();
-
-                $.ajax({
-                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
-                    type: 'POST',
-                    dataType: 'json',
-                    data: {
-                        action: 'gerar_charada_ajax',
-                        grupo_id: grupoId
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            $('#charada-container').html(response.data);
-                        } else {
-                            $('#charada-container').html('<p><?php _e('Nenhuma charada disponível para este grupo.', 'sz-conectar-idb'); ?></p>');
-                        }
-                    },
-                    error: function () {
-                        $('#charada-container').html('<p><?php _e('Erro ao carregar a charada. Tente novamente mais tarde.', 'sz-conectar-idb'); ?></p>');
-                    }
-                });
-            }
-
-            $('#charada-form').on('submit', function (e) {
-                e.preventDefault();
-
-                $('#loading-message').show();
-                $('#result-message').html('');
-
-                const formData = $(this).serialize();
-
-                $.ajax({
-                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
-                    type: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        $('#loading-message').hide();
-
-                        if (response.success) {
-                            $('#result-message').html('<p style="color: green;"><?php _e('Resposta correta!', 'sz-conectar-idb'); ?></p>');
-                        } else {
-                            $('#result-message').html('<p style="color: red;"><?php _e('Resposta incorreta. Tente novamente.', 'sz-conectar-idb'); ?></p>');
-                        }
-                    },
-                    error: function () {
-                        $('#loading-message').hide();
-                        $('#result-message').html('<p style="color: red;"><?php _e('Erro ao verificar a resposta. Tente novamente.', 'sz-conectar-idb'); ?></p>');
-                    }
-                });
-            });
-        });
-    </script>
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('gerar_charada', 'gerar_charada_shortcode');
-
-/**
- * AJAX for Riddles.
- */
 function gerar_charada_ajax() {
     global $wpdb;
 
     if (isset($_POST['grupo_id'])) {
         $grupo_id = intval($_POST['grupo_id']);
-
         $table_name = $wpdb->prefix . 'sz_access_phrases';
+
         $charada = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE grupo_id = %d ORDER BY RAND() LIMIT 1",
             $grupo_id
@@ -191,7 +167,7 @@ function gerar_charada_ajax() {
         if ($charada) {
             $output = '<input type="hidden" name="charada_id" value="' . esc_attr($charada->id) . '">';
             $output .= '<p><strong>' . __('Charada:', 'sz-conectar-idb') . '</strong> ' . esc_html($charada->pergunta) . '</p>';
-            $output .= '<input size="1" type="text" name="form_fields[resposta]" placeholder="' . __('Resposta', 'sz-conectar-idb') . '" required>';
+            $output .= '<input size="1" type="text" name="resposta" placeholder="' . __('Resposta', 'sz-conectar-idb') . '" required>';
             $output .= '<button type="submit" class="button-primary">' . __('Enviar', 'sz-conectar-idb') . '</button>';
             wp_send_json_success($output);
         } else {
