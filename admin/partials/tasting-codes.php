@@ -18,29 +18,36 @@ if (!current_user_can('manage_options')) {
 
 // Handle form submission for adding a new tasting code.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sz_add_tasting_code_nonce']) && wp_verify_nonce($_POST['sz_add_tasting_code_nonce'], 'sz_add_tasting_code')) {
-    $new_code = sanitize_text_field($_POST['tasting_code']);
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'sz_tasting_codes';
 
-    if (!empty($new_code)) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'sz_tasting_codes';
+    $school_name = sanitize_text_field($_POST['school_name']);
+    $access_code = sanitize_text_field($_POST['access_code']);
+    $max_uses = intval($_POST['max_uses']);
+    $valid_until = !empty($_POST['valid_until']) ? sanitize_text_field($_POST['valid_until']) : null;
+
+    if (!empty($school_name) && !empty($access_code) && $max_uses > 0) {
         $wpdb->insert(
             $table_name,
             array(
-                'code' => $new_code,
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql')
+                'school_name' => $school_name,
+                'access_code' => $access_code,
+                'max_uses' => $max_uses,
+                'current_uses' => 0,
+                'is_active' => 1,
+                'valid_until' => $valid_until
             )
         );
         echo '<div class="notice notice-success is-dismissible"><p>' . __('Tasting code added successfully.', 'sz-conectar-idb') . '</p></div>';
     } else {
-        echo '<div class="notice notice-error is-dismissible"><p>' . __('Please enter a valid tasting code.', 'sz-conectar-idb') . '</p></div>';
+        echo '<div class="notice notice-error is-dismissible"><p>' . __('Please fill in all required fields.', 'sz-conectar-idb') . '</p></div>';
     }
 }
 
 // Retrieve existing tasting codes.
 global $wpdb;
 $table_name = $wpdb->prefix . 'sz_tasting_codes';
-$tasting_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC");
+$tasting_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id ASC");
 ?>
 
 <div class="wrap">
@@ -49,48 +56,80 @@ $tasting_codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_
     <form method="post" action="">
         <?php wp_nonce_field('sz_add_tasting_code', 'sz_add_tasting_code_nonce'); ?>
         <table class="form-table">
-            <tr>
+            <tr valign="top">
                 <th scope="row">
-                    <label for="tasting_code"><?php echo esc_html(__('New Tasting Code', 'sz-conectar-idb')); ?></label>
+                    <label for="school_name"><?php echo esc_html(__('School Name', 'sz-conectar-idb')); ?></label>
                 </th>
                 <td>
-                    <input type="text" id="tasting_code" name="tasting_code" class="regular-text" required>
+                    <input type="text" id="school_name" name="school_name" class="regular-text" required>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">
+                    <label for="access_code"><?php echo esc_html(__('Access Code', 'sz-conectar-idb')); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="access_code" name="access_code" class="regular-text" required>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">
+                    <label for="max_uses"><?php echo esc_html(__('Maximum Uses', 'sz-conectar-idb')); ?></label>
+                </th>
+                <td>
+                    <input type="number" id="max_uses" name="max_uses" class="small-text" min="1" required>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">
+                    <label for="valid_until"><?php echo esc_html(__('Valid Until (Optional)', 'sz-conectar-idb')); ?></label>
+                </th>
+                <td>
+                    <input type="date" id="valid_until" name="valid_until" class="regular-text">
                 </td>
             </tr>
         </table>
-        
-        <?php submit_button(__('Add Code', 'sz-conectar-idb')); ?>
+        <?php submit_button(__('Add Tasting Code', 'sz-conectar-idb')); ?>
     </form>
 
     <hr>
+
     <h2><?php echo esc_html(__('Existing Tasting Codes', 'sz-conectar-idb')); ?></h2>
 
-    <table class="widefat fixed">
+    <table id="tasting-codes-table" class="display wp-list-table widefat fixed striped">
         <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col"><?php echo esc_html(__('Code', 'sz-conectar-idb')); ?></th>
-                <th scope="col"><?php echo esc_html(__('Created At', 'sz-conectar-idb')); ?></th>
-                <th scope="col"><?php echo esc_html(__('Updated At', 'sz-conectar-idb')); ?></th>
-                <th scope="col"><?php echo esc_html(__('Actions', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('ID', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('School Name', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Access Code', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Maximum Uses', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Current Uses', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Active', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Valid Until', 'sz-conectar-idb')); ?></th>
+                <th><?php echo esc_html(__('Actions', 'sz-conectar-idb')); ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if (!empty($tasting_codes)) : ?>
-                <?php foreach ($tasting_codes as $index => $code) : ?>
+                <?php foreach ($tasting_codes as $code) : ?>
                     <tr>
-                        <td><?php echo esc_html($index + 1); ?></td>
-                        <td><?php echo esc_html($code->code); ?></td>
-                        <td><?php echo esc_html($code->created_at); ?></td>
-                        <td><?php echo esc_html($code->updated_at); ?></td>
+                        <td><?php echo esc_html($code->id); ?></td>
+                        <td><?php echo esc_html($code->school_name); ?></td>
+                        <td><?php echo esc_html($code->access_code); ?></td>
+                        <td><?php echo esc_html($code->max_uses); ?></td>
+                        <td><?php echo esc_html($code->current_uses); ?></td>
+                        <td><?php echo esc_html($code->is_active ? 'Yes' : 'No'); ?></td>
+                        <td><?php echo esc_html($code->valid_until ? date_i18n(get_option('date_format'), strtotime($code->valid_until)) : '-'); ?></td>
                         <td>
-                            <a href="#" class="button button-secondary" onclick="deleteTastingCode(<?php echo esc_js($code->id); ?>)"><?php echo esc_html(__('Delete', 'sz-conectar-idb')); ?></a>
+                            <a href="#" class="button button-secondary" onclick="deleteTastingCode(<?php echo esc_js($code->id); ?>)">
+                                <?php echo esc_html(__('Delete', 'sz-conectar-idb')); ?>
+                            </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else : ?>
                 <tr>
-                    <td colspan="5"><?php echo esc_html(__('No tasting codes found.', 'sz-conectar-idb')); ?></td>
+                    <td colspan="8"><?php echo esc_html(__('No tasting codes found.', 'sz-conectar-idb')); ?></td>
                 </tr>
             <?php endif; ?>
         </tbody>
