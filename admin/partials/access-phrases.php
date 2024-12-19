@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 global $wpdb;
-$table_name = $wpdb->prefix . 'sz_frases_acesso';
+$table_name = $wpdb->prefix . 'sz_access_phrases';
 
 // Handle form submission for adding new phrases
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_access_phrase_nonce']) && wp_verify_nonce($_POST['new_access_phrase_nonce'], 'add_access_phrase')) {
