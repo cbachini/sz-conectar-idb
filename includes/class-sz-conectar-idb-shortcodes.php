@@ -19,6 +19,8 @@ class Sz_Conectar_Idb_Shortcodes {
             <input type="text" name="resposta" placeholder="<?php _e('Resposta', 'sz-conectar-idb'); ?>" required>
             <button type="submit"><?php _e('Enviar', 'sz-conectar-idb'); ?></button>
         </form>
+        <div id="loading-message" style="display:none;"><?php _e('Verificando a resposta...', 'sz-conectar-idb'); ?></div>
+        <div id="result-message"></div>
 
         <script>
         jQuery(document).ready(function ($) {
@@ -34,13 +36,20 @@ class Sz_Conectar_Idb_Shortcodes {
                         if (response.success) {
                             $('#charada-id').val(response.data.id);
                             $('#charada-pergunta').text(response.data.pergunta);
+                        } else {
+                            $('#result-message').html('<p style="color:red;">' + response.data + '</p>');
                         }
+                    },
+                    error: function () {
+                        $('#result-message').html('<p style="color:red;"><?php _e("Erro ao carregar a charada. Tente novamente mais tarde.", "sz-conectar-idb"); ?></p>');
                     }
                 });
             }
 
             $('#charada-form').submit(function (e) {
                 e.preventDefault();
+                $('#loading-message').show();
+                $('#result-message').empty();
 
                 const formData = $(this).serialize();
 
@@ -49,11 +58,19 @@ class Sz_Conectar_Idb_Shortcodes {
                     type: 'POST',
                     data: formData,
                     success: function (response) {
+                        $('#loading-message').hide();
+
                         if (response.success) {
-                            alert('<?php _e('Resposta correta!', 'sz-conectar-idb'); ?>');
+                            $('#result-message').html('<p style="color:green;"><?php _e("Resposta correta! Acessando o conteúdo...", "sz-conectar-idb"); ?></p>');
+                            $('#audiobook, #ebook').show();
+                            $('#aviso-bloqueio').hide();
                         } else {
-                            alert('<?php _e('Resposta incorreta.', 'sz-conectar-idb'); ?>');
+                            $('#result-message').html('<p style="color:red;">' + response.data + '</p>');
                         }
+                    },
+                    error: function () {
+                        $('#loading-message').hide();
+                        $('#result-message').html('<p style="color:red;"><?php _e("Erro ao verificar a resposta. Tente novamente.", "sz-conectar-idb"); ?></p>');
                     }
                 });
             });

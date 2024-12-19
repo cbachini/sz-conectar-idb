@@ -1,48 +1,63 @@
 <?php
 
 /**
- * Plugin Name:       Soyuz - IDB
- * Plugin URI:        https://soyuz.com.br
- * Description:       Um plugin para adicionar funcionalidades ao site do IDB
- * Version:           2.0.0
- * Author:            Soyuz
- * Author URI:        https://soyuz.com.br/
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       sz-conectar-idb
- * Domain Path:       /languages
+ * Classe para validação e geração de charadas.
  */
+class Sz_Conectar_Idb_Riddles {
 
-if (!defined('WPINC')) {
-    die;
+    public static function init() {
+        add_action('wp_ajax_validar_charada_resposta', [self::class, 'validar_charada_resposta']);
+        add_action('wp_ajax_nopriv_validar_charada_resposta', [self::class, 'validar_charada_resposta']);
+        add_action('wp_ajax_gerar_charada_ajax', [self::class, 'gerar_charada_ajax']);
+        add_action('wp_ajax_nopriv_gerar_charada_ajax', [self::class, 'gerar_charada_ajax']);
+    }
+
+    public static function validar_charada_resposta() {
+        global $wpdb;
+
+        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+        $resposta = isset($_POST['resposta']) ? sanitize_text_field($_POST['resposta']) : '';
+
+        if ($id && $resposta) {
+            $table_name = $wpdb->prefix . 'sz_access_phrases';
+            $charada = $wpdb->get_row($wpdb->prepare(
+                "SELECT id FROM $table_name WHERE id = %d AND resposta = %s",
+                $id,
+                $resposta
+            ));
+
+            if ($charada) {
+                wp_send_json_success(__('Resposta correta!', 'sz-conectar-idb'));
+            } else {
+                wp_send_json_error(__('Resposta incorreta. Tente novamente.', 'sz-conectar-idb'));
+            }
+        } else {
+            wp_send_json_error(__('Dados insuficientes.', 'sz-conectar-idb'));
+        }
+    }
+
+    public static function gerar_charada_ajax() {
+        global $wpdb;
+
+        if (isset($_POST['grupo_id'])) {
+            $grupo_id = intval($_POST['grupo_id']);
+            $table_name = $wpdb->prefix . 'sz_access_phrases';
+
+            $charada = $wpdb->get_row($wpdb->prepare(
+                "SELECT id, pergunta FROM $table_name WHERE grupo_id = %d ORDER BY RAND() LIMIT 1",
+                $grupo_id
+            ));
+
+            if ($charada) {
+                wp_send_json_success([
+                    'id' => $charada->id,
+                    'pergunta' => $charada->pergunta,
+                ]);
+            } else {
+                wp_send_json_error(__('Nenhuma charada disponível para este grupo.', 'sz-conectar-idb'));
+            }
+        } else {
+            wp_send_json_error(__('Grupo não especificado.', 'sz-conectar-idb'));
+        }
+    }
 }
-
-define('SZ_CONECTAR_IDB_VERSION', '2.0.0');
-
-/**
- * Ativação e Desativação do Plugin
- */
-function activate_sz_conectar_idb() {
-    require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-activator.php';
-    Sz_Conectar_Idb_Activator::activate();
-}
-
-function deactivate_sz_conectar_idb() {
-    require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-deactivator.php';
-    Sz_Conectar_Idb_Deactivator::deactivate();
-}
-
-register_activation_hook(__FILE__, 'activate_sz_conectar_idb');
-register_deactivation_hook(__FILE__, 'deactivate_sz_conectar_idb');
-
-/**
- * Inclusão de Classes
- */
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-riddles.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortcodes.php';
-
-/**
- * Inicialização
- */
-Sz_Conectar_Idb_Riddles::init();
-Sz_Conectar_Idb_Shortcodes::init();
