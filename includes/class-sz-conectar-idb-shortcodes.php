@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Classe para Gerenciamento de Shortcodes
+ * Classe para gerenciamento de shortcodes.
  */
 class Sz_Conectar_Idb_Shortcodes {
 
@@ -13,38 +13,34 @@ class Sz_Conectar_Idb_Shortcodes {
         ob_start();
         ?>
         <form id="charada-form">
-            <input type="hidden" name="action" value="validar_charada_resposta">
-            <input type="hidden" name="id" id="charada-id">
-            <p id="charada-pergunta"></p>
-            <input type="text" name="resposta" placeholder="<?php _e('Resposta', 'sz-conectar-idb'); ?>" required>
-            <button type="submit"><?php _e('Enviar', 'sz-conectar-idb'); ?></button>
+            <div id="charada-container">
+                <p><?php _e('Carregando charada...', 'sz-conectar-idb'); ?></p>
+            </div>
+            <div id="loading-message" style="display: none;"><?php _e('Verificando a resposta...', 'sz-conectar-idb'); ?></div>
+            <div id="result-message"></div>
         </form>
-        <div id="loading-message" style="display:none;"><?php _e('Verificando a resposta...', 'sz-conectar-idb'); ?></div>
-        <div id="result-message"></div>
 
         <script>
         jQuery(document).ready(function ($) {
             const grupoId = $('#numero-livro').text().trim();
 
             if (grupoId) {
-                $('#loading-message').show();
                 $.ajax({
                     url: '<?php echo admin_url("admin-ajax.php"); ?>',
                     type: 'POST',
                     dataType: 'json',
                     data: { action: 'gerar_charada_ajax', grupo_id: grupoId },
                     success: function (response) {
-                        $('#loading-message').hide();
                         if (response.success) {
-                            $('#charada-id').val(response.data.id);
-                            $('#charada-pergunta').text(response.data.pergunta);
+                            $('#charada-container').html(`
+                                <input type="hidden" name="id" value="${response.data.id}">
+                                <p><strong><?php _e('Charada:', 'sz-conectar-idb'); ?></strong> ${response.data.pergunta}</p>
+                                <input type="text" name="resposta" placeholder="<?php _e('Resposta', 'sz-conectar-idb'); ?>" required>
+                                <button type="submit"><?php _e('Enviar', 'sz-conectar-idb'); ?></button>
+                            `);
                         } else {
-                            $('#result-message').html('<p style="color:red;">' + response.data + '</p>');
+                            $('#charada-container').html('<p><?php _e('Nenhuma charada disponível.', 'sz-conectar-idb'); ?></p>');
                         }
-                    },
-                    error: function () {
-                        $('#loading-message').hide();
-                        $('#result-message').html('<p style="color:red;"><?php _e("Erro ao carregar a charada. Tente novamente mais tarde.", "sz-conectar-idb"); ?></p>');
                     }
                 });
             }
@@ -52,7 +48,7 @@ class Sz_Conectar_Idb_Shortcodes {
             $('#charada-form').submit(function (e) {
                 e.preventDefault();
                 $('#loading-message').show();
-                $('#result-message').empty();
+                $('#result-message').html('');
 
                 const formData = $(this).serialize();
 
@@ -62,18 +58,13 @@ class Sz_Conectar_Idb_Shortcodes {
                     data: formData,
                     success: function (response) {
                         $('#loading-message').hide();
-
                         if (response.success) {
-                            $('#result-message').html('<p style="color:green;"><?php _e("Resposta correta! Acessando o conteúdo...", "sz-conectar-idb"); ?></p>');
+                            $('#result-message').html('<p style="color: green;"><?php _e('Resposta correta!', 'sz-conectar-idb'); ?></p>');
                             $('#audiobook, #ebook').show();
                             $('#aviso-bloqueio').hide();
                         } else {
-                            $('#result-message').html('<p style="color:red;">' + response.data + '</p>');
+                            $('#result-message').html('<p style="color: red;"><?php _e('Resposta incorreta.', 'sz-conectar-idb'); ?></p>');
                         }
-                    },
-                    error: function () {
-                        $('#loading-message').hide();
-                        $('#result-message').html('<p style="color:red;"><?php _e("Erro ao verificar a resposta. Tente novamente.", "sz-conectar-idb"); ?></p>');
                     }
                 });
             });
