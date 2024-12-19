@@ -3,15 +3,17 @@
 /**
  * Plugin Name:       Soyuz - IDB
  * Plugin URI:        https://soyuz.com.br
- * Description:       Plugin para validação de códigos e charadas no IDB.
+ * Description:       Um plugin para adicionar funcionalidades ao site do IDB
  * Version:           2.0.0
  * Author:            Soyuz
  * Author URI:        https://soyuz.com.br/
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       sz-conectar-idb
  * Domain Path:       /languages
  */
 
-// Abort if called directly.
+// Abort if this file is called directly.
 if (!defined('WPINC')) {
     die;
 }
@@ -19,21 +21,19 @@ if (!defined('WPINC')) {
 // Define plugin version.
 define('SZ_CONECTAR_IDB_VERSION', '2.0.0');
 
-/**
- * Autoload classes and initialize the plugin.
- */
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-admin.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-riddles.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortcodes.php';
+// Autoload includes.
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-loader.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-activator.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-deactivator.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb.php';
 
-/**
- * Initialize all components.
- */
-function sz_conectar_idb_init() {
-    Sz_Conectar_Idb_Admin::init();
-    Sz_Conectar_Idb_Riddles::init();
-    Sz_Conectar_Idb_Codes::init();
-    Sz_Conectar_Idb_Shortcodes::init();
+// Register activation and deactivation hooks.
+register_activation_hook(__FILE__, ['Sz_Conectar_Idb_Activator', 'activate']);
+register_deactivation_hook(__FILE__, ['Sz_Conectar_Idb_Deactivator', 'deactivate']);
+
+// Initialize the plugin.
+function run_sz_conectar_idb() {
+    $plugin = new Sz_Conectar_Idb();
+    $plugin->run();
 }
-add_action('plugins_loaded', 'sz_conectar_idb_init');
+run_sz_conectar_idb();
