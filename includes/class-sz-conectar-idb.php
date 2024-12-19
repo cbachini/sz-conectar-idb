@@ -47,10 +47,13 @@ if (!class_exists('Sz_Conectar_Idb')) {
             $plugin_public = new Sz_Conectar_Idb_Public($this->get_plugin_name(), $this->get_version());
             $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
             $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
+
+            $this->loader->add_action('wp_ajax_gerar_charada_ajax', 'Sz_Conectar_Idb_Shortcodes', 'gerar_charada_ajax_callback');
+            $this->loader->add_action('wp_ajax_nopriv_gerar_charada_ajax', 'Sz_Conectar_Idb_Shortcodes', 'gerar_charada_ajax_callback');
         }
 
         private function define_shortcodes() {
-            add_shortcode('gerar_charada', ['Sz_Conectar_Idb_Shortcodes', 'gerar_charada_shortcode']);
+            Sz_Conectar_Idb_Shortcodes::init();
         }
 
         public function run() {
