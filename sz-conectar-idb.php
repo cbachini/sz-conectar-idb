@@ -64,7 +64,7 @@ function validar_entrada() {
     $entrada = isset($_POST['entrada']) ? sanitize_text_field($_POST['entrada']) : '';
 
     if (!empty($tipo) && !empty($entrada)) {
-        $table_name = $wpdb->prefix . ($tipo === 'codigo' ? 'sz_access_codes' : 'sz_frases_acesso');
+        $table_name = $wpdb->prefix . ($tipo === 'codigo' ? 'sz_access_codes' : 'sz_access_phrases');
         $coluna = $tipo === 'codigo' ? 'access_code' : 'resposta';
         $condicao_adicional = $tipo === 'codigo' ? ' AND is_active = 1' : '';
 
