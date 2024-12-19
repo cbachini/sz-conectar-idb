@@ -2,13 +2,8 @@
 
 class Sz_Conectar_Idb_Loader {
 
-    protected $actions;
-    protected $filters;
-
-    public function __construct() {
-        $this->actions = [];
-        $this->filters = [];
-    }
+    protected $actions = [];
+    protected $filters = [];
 
     public function add_action($hook, $component, $callback, $priority = 10, $accepted_args = 1) {
         $this->actions[] = [
@@ -32,21 +27,11 @@ class Sz_Conectar_Idb_Loader {
 
     public function run() {
         foreach ($this->filters as $filter) {
-            add_filter(
-                $filter['hook'],
-                [$filter['component'], $filter['callback']],
-                $filter['priority'],
-                $filter['accepted_args']
-            );
+            add_filter($filter['hook'], [$filter['component'], $filter['callback']], $filter['priority'], $filter['accepted_args']);
         }
 
         foreach ($this->actions as $action) {
-            add_action(
-                $action['hook'],
-                [$action['component'], $action['callback']],
-                $action['priority'],
-                $action['accepted_args']
-            );
+            add_action($action['hook'], [$action['component'], $action['callback']], $action['priority'], $action['accepted_args']);
         }
     }
 }

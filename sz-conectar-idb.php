@@ -26,6 +26,10 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-loader.
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-activator.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-deactivator.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortcodes.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-i18n.php';
+require_once plugin_dir_path(__FILE__) . 'admin/class-sz-conectar-idb-admin.php';
+require_once plugin_dir_path(__FILE__) . 'public/class-sz-conectar-idb-public.php';
 
 // Register activation and deactivation hooks.
 register_activation_hook(__FILE__, ['Sz_Conectar_Idb_Activator', 'activate']);
