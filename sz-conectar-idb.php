@@ -1,13 +1,7 @@
 <?php
 
 /**
- *
- * @link              https://soyuz.com.br
- * @since             2.0.0
- * @package           Sz_Conectar_Idb
- *
- * @wordpress-plugin
- * Plugin Name:       Soyuz / Mixirica (IDB)
+ * Plugin Name:       Soyuz - IDB
  * Plugin URI:        https://soyuz.com.br
  * Description:       Um plugin para adicionar funcionalidades ao site do IDB
  * Version:           2.0.0
@@ -42,17 +36,6 @@ function deactivate_sz_conectar_idb() {
 
 register_activation_hook(__FILE__, 'activate_sz_conectar_idb');
 register_deactivation_hook(__FILE__, 'deactivate_sz_conectar_idb');
-
-/**
- * Core Plugin Class Initialization.
- */
-require plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb.php';
-
-function run_sz_conectar_idb() {
-    $plugin = new Sz_Conectar_Idb();
-    $plugin->run();
-}
-run_sz_conectar_idb();
 
 /**
  * AJAX Validation Function for Access Codes.
@@ -93,7 +76,37 @@ add_action('wp_ajax_validar_codigo_professor', 'validar_codigo_professor');
 add_action('wp_ajax_nopriv_validar_codigo_professor', 'validar_codigo_professor');
 
 /**
- * Shortcode for Generating Riddles and Content Blocking.
+ * AJAX Validation Function for Riddles.
+ */
+function validar_charada_resposta() {
+    global $wpdb;
+
+    if (isset($_POST['charada_id']) && isset($_POST['resposta'])) {
+        $charada_id = intval($_POST['charada_id']);
+        $resposta = sanitize_text_field($_POST['resposta']);
+
+        $table_name = $wpdb->prefix . 'sz_access_phrases';
+        $charada = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d AND resposta = %s",
+            $charada_id,
+            $resposta
+        ));
+
+        if ($charada) {
+            wp_send_json_success(__('Resposta correta!', 'sz-conectar-idb'));
+        } else {
+            wp_send_json_error(__('Resposta incorreta. Tente novamente.', 'sz-conectar-idb'));
+        }
+    } else {
+        wp_send_json_error(__('Dados insuficientes.', 'sz-conectar-idb'));
+    }
+}
+
+add_action('wp_ajax_validar_charada_resposta', 'validar_charada_resposta');
+add_action('wp_ajax_nopriv_validar_charada_resposta', 'validar_charada_resposta');
+
+/**
+ * Shortcode for Generating Riddles.
  */
 function gerar_charada_shortcode() {
     ob_start();
@@ -168,7 +181,7 @@ function gerar_charada_shortcode() {
 add_shortcode('gerar_charada', 'gerar_charada_shortcode');
 
 /**
- * AJAX for Riddles.
+ * AJAX for Generating Riddles.
  */
 function gerar_charada_ajax() {
     global $wpdb;
