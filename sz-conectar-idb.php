@@ -182,7 +182,7 @@ function gerar_charada_ajax() {
     if (isset($_POST['grupo_id'])) {
         $grupo_id = intval($_POST['grupo_id']);
 
-        $table_name = $wpdb->prefix . 'sz_frases_acesso';
+        $table_name = $wpdb->prefix . 'sz_access_phrases';
         $charada = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE grupo_id = %d ORDER BY RAND() LIMIT 1",
             $grupo_id
