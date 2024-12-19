@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 global $wpdb;
-$table_name = $wpdb->prefix . 'access_codes';
+$table_name = $wpdb->prefix . 'sz_access_codes';
 
 // Processa o formulário de adição de novo código
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_teacher_code'])) {
