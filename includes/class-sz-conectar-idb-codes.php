@@ -46,12 +46,12 @@ if (!class_exists('Sz_Conectar_Idb_Codes')) {
             ));
 
             if (!$code) {
-                $handler->add_error('form_fields[codigo]', __('Código de acesso inválido.', 'sz-conectar-idb'));
+                $handler->add_error('form_fields[codigo]', __('Código de acesso inválido ou inativo.', 'sz-conectar-idb'));
                 return;
             }
 
             // Validação: Código expirado
-            if (strtotime($code->valid_until) < time()) {
+            if (!is_null($code->valid_until) && strtotime($code->valid_until) < time()) {
                 $handler->add_error('form_fields[codigo]', __('O código de acesso expirou.', 'sz-conectar-idb'));
                 return;
             }
