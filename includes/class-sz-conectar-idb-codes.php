@@ -7,6 +7,7 @@ if (!function_exists('validate_access_code')) {
 
         // Identifica a tabela correta com base no ID do formulário
         global $wpdb;
+
         if ($form_id === '1b426a8') {
             $table_name = $wpdb->prefix . 'sz_tasting_codes'; // Tabela de degustação
         } elseif ($form_id === '605fd56') {
@@ -23,7 +24,7 @@ if (!function_exists('validate_access_code')) {
         }
 
         // Verifica se o campo "codigo" foi enviado
-        if (empty($fields['form_fields[codigo]'])) {
+        if (empty($fields['form_fields[codigo]']['value'])) {
             $ajax_handler->add_error('form_fields[codigo]', __('O código de acesso é obrigatório.', 'sz-conectar-idb'));
             return;
         }
