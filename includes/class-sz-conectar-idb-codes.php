@@ -12,15 +12,17 @@ if (!class_exists('Sz_Conectar_Idb_Codes')) {
          * Validações específicas para Elementor Forms
          */
         public static function validate_elementor_form($record, $handler) {
-            // Certifica-se de processar apenas formulários relevantes
-            $form_name = $record->get_form_settings('form_name');
+            // Obtém o ID do formulário
+            $form_id = $record->get_form_settings('form_id');
 
-            // Identifica o formulário e a tabela correta
+            // Identifica a tabela correta com base no ID do formulário
             global $wpdb;
-            if ($form_name === 'Cadastro') {
-                $table_name = $wpdb->prefix . 'sz_access_codes'; // Tabela de professores
-            } elseif ($form_name === 'Cadastro Trial') {
+
+            // Mapear IDs de formulários para tabelas
+            if ($form_id === '1b426a8') {
                 $table_name = $wpdb->prefix . 'sz_tasting_codes'; // Tabela de degustação
+            } elseif ($form_id === '605fd56') {
+                $table_name = $wpdb->prefix . 'sz_access_codes'; // Tabela de professores
             } else {
                 return; // Ignorar outros formulários
             }
