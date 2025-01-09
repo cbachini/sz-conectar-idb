@@ -55,10 +55,12 @@ function sz_conectar_idb_enqueue_public_scripts() {
         true
     );
 
+    // Passa a URL AJAX para o script
     wp_localize_script('sz-conectar-idb-public', 'myAjax', [
-        'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('validate_access_code_nonce'),
+        'ajaxurl' => admin_url('admin-ajax.php'), // URL do AJAX
+        'nonce' => wp_create_nonce('validate_access_code_nonce'), // Nonce de segurança
     ]);
 }
 add_action('wp_enqueue_scripts', 'sz_conectar_idb_enqueue_public_scripts');
+
 

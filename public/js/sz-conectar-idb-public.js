@@ -22,27 +22,27 @@
             $message.text('Validando código...').css('color', 'blue');
 
             $.ajax({
-                url: ajaxurl,
-                method: 'POST',
-                data: {
-                    action: 'validate_access_code',
-                    codigo: codigo,
-                    form_type: formType,
-                    nonce: myAjax.nonce,
-                },
-                success: function (response) {
-                    if (response.success) {
-                        $message.text(response.data.message).css('color', 'green');
-                        $field.data('valid', true);
-                    } else {
-                        $message.text(response.data.message).css('color', 'red');
-                        $field.data('valid', false);
-                    }
-                },
-                error: function () {
-                    $message.text('Erro ao validar o código.').css('color', 'red');
-                },
-            });
+				url: myAjax.ajaxurl, 
+				method: 'POST',
+				data: {
+					action: 'validate_access_code',
+					codigo: codigo,
+					form_type: formType,
+					nonce: myAjax.nonce,
+				},
+				success: function (response) {
+					if (response.success) {
+						codigoMessage.text(response.data.message).css('color', 'green');
+						codigoField.css({ borderColor: 'green' }).data('valid', true);
+					} else {
+						codigoMessage.text(response.data.message).css('color', 'red');
+						codigoField.css({ borderColor: 'red' }).data('valid', false);
+					}
+				},
+				error: function () {
+					codigoMessage.text('Erro ao validar o código.').css('color', 'red');
+				},
+			});
         });
 
         $(document).on('submit', formSelector, function (e) {
