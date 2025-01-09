@@ -23,12 +23,7 @@ if (!function_exists('validate_access_code')) {
             $fields[$field['name']] = $field;
         }
 
-        // Verifica se o campo "codigo" foi enviado
-        if (empty($fields['form_fields[codigo]']['value'])) {
-            $ajax_handler->add_error('form_fields[codigo]', __('O código de acesso é obrigatório.', 'sz-conectar-idb'));
-            return;
-        }
-
+        // Obtém o valor do campo "codigo"
         $codigo = sanitize_text_field($fields['form_fields[codigo]']['value']);
 
         // Verifica se o código existe na tabela correspondente
@@ -42,24 +37,7 @@ if (!function_exists('validate_access_code')) {
             return;
         }
 
-        // Validação: Código expirado
-        if (!is_null($code->valid_until) && strtotime($code->valid_until) < time()) {
-            $ajax_handler->add_error('form_fields[codigo]', __('O código de acesso expirou.', 'sz-conectar-idb'));
-            return;
-        }
-
-        // Validação: Limite de usos atingido
-        if ($code->current_uses >= $code->max_uses) {
-            $ajax_handler->add_error('form_fields[codigo]', __('O código de acesso já atingiu o limite de usos.', 'sz-conectar-idb'));
-            return;
-        }
-
-        // Atualiza o uso do código na tabela correspondente
-        $wpdb->update(
-            $table_name,
-            ['current_uses' => $code->current_uses + 1],
-            ['id' => $code->id]
-        );
+        // Caso o código seja válido, nenhuma ação adicional é necessária neste ponto.
     }
 
     add_action('elementor_pro/forms/validation', 'validate_access_code', 10, 2);
