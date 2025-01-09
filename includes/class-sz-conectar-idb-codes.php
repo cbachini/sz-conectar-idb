@@ -2,11 +2,6 @@
 
 class Sz_Conectar_Idb_Codes {
 
-    public static function init() {
-        add_action('wp_ajax_validate_access_code', [self::class, 'ajax_validate_access_code']);
-        add_action('wp_ajax_nopriv_validate_access_code', [self::class, 'ajax_validate_access_code']);
-    }
-
     /**
      * Validação do Código de Acesso via AJAX
      */
@@ -44,6 +39,10 @@ class Sz_Conectar_Idb_Codes {
         }
 
         wp_send_json_success(['message' => __('Código de acesso válido!', 'sz-conectar-idb')]);
+    }
+
+    public static function init() {
+        add_action('wp_ajax_nopriv_validate_access_code', [Sz_Conectar_Idb_Codes::class, 'ajax_validate_access_code']);
     }
 }
 
