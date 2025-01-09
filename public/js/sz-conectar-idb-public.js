@@ -1,56 +1,53 @@
 (function ($) {
     'use strict';
 
-    $(window).on('elementor/frontend/init', function () {
-        const formSelector = '.elementor-form'; // Selector padrão do formulário
+    $(document).ready(function () {
+        const codigoField = $('#form-field-codigo');
+        if (!codigoField.length) return;
 
-        $(document).on('blur', '#form-field-codigo', function () {
-            const $field = $(this);
-            const codigo = $field.val().trim();
-            const formId = $field.closest(formSelector).find('input[name="form_id"]').val();
+        const codigoMessage = $('<div></div>').css({
+            marginTop: '5px',
+            fontSize: '14px',
+        });
+        codigoField.parent().append(codigoMessage);
+
+        codigoField.on('blur', function () {
+            const codigo = codigoField.val().trim();
+            const formId = $('input[name="form_id"]').val();
             const formType = formId === '1b426a8' ? 'degustacao' : 'professor';
 
-            const $message = $('<div class="validation-message"></div>');
-            $field.siblings('.validation-message').remove();
-            $field.after($message);
+            console.log('Iniciando validação do código...');
+            console.log('Código digitado:', codigo);
+            console.log('Tipo de formulário:', formType);
 
-            if (!codigo) {
-                $message.text('O código é obrigatório.').css('color', 'red');
-                return;
-            }
-
-            $message.text('Validando código...').css('color', 'blue');
+            codigoMessage.text('Validando código...').css('color', 'blue');
 
             $.ajax({
-				url: myAjax.ajaxurl, 
-				method: 'POST',
-				data: {
-					action: 'validate_access_code',
-					codigo: codigo,
-					form_type: formType,
-					nonce: myAjax.nonce,
-				},
-				success: function (response) {
-					if (response.success) {
-						codigoMessage.text(response.data.message).css('color', 'green');
-						codigoField.css({ borderColor: 'green' }).data('valid', true);
-					} else {
-						codigoMessage.text(response.data.message).css('color', 'red');
-						codigoField.css({ borderColor: 'red' }).data('valid', false);
-					}
-				},
-				error: function () {
-					codigoMessage.text('Erro ao validar o código.').css('color', 'red');
-				},
-			});
-        });
-
-        $(document).on('submit', formSelector, function (e) {
-            const $field = $(this).find('#form-field-codigo');
-            if ($field.data('valid') !== true) {
-                e.preventDefault();
-                alert('Por favor, corrija o código antes de enviar.');
-            }
+                url: myAjax.ajaxurl,
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    action: 'validate_access_code',
+                    codigo: codigo,
+                    form_type: formType,
+                    nonce: myAjax.nonce,
+                },
+                success: function (response) {
+                    console.log('Resposta AJAX recebida:', response);
+                    if (response.success) {
+                        codigoMessage.text(response.data.message).css('color', 'green');
+                        codigoField.css({ borderColor: 'green' });
+                    } else {
+                        codigoMessage.text(response.data.message).css('color', 'red');
+                        codigoField.css({ borderColor: 'red' });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Erro na requisição AJAX:', error);
+                    console.error('Detalhes:', xhr.responseText);
+                    codigoMessage.text('Erro ao validar o código.').css('color', 'red');
+                },
+            });
         });
     });
 })(jQuery);
