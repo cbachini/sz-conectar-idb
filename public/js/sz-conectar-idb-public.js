@@ -1,105 +1,84 @@
-(function( $ ) {
-	'use strict';
+(function ($) {
+    'use strict';
 
-	/**
-	 * All of the code for your public-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
-	 */
+    $(document).ready(function () {
+        // Seleciona o campo de código de acesso
+        const codigoField = $('#form-field-codigo');
+        if (!codigoField.length) return; // Sai se o campo não existir
 
-})( jQuery );
+        // Cria o elemento para exibir mensagens (erro ou sucesso)
+        const codigoMessage = $('<div></div>').css({
+            marginTop: '5px',
+            fontSize: '14px',
+        });
+        codigoField.parent().append(codigoMessage); // Adiciona a mensagem abaixo do campo
 
-document.addEventListener('DOMContentLoaded', function () {
-    const codigoField = document.querySelector('#form-field-codigo');
-    if (!codigoField) return; // Garante que o campo exista antes de executar o script
+        // Evento disparado quando o usuário sai do campo (blur)
+        codigoField.on('blur', function () {
+            const codigo = codigoField.val().trim(); // Obtém o valor digitado no campo
+            const formType = $('input[name="form_id"]').val() === '1b426a8' ? 'degustacao' : 'professor'; // Identifica o tipo de formulário
 
-    const codigoMessage = document.createElement('div'); // Mensagem de erro ou sucesso
-    codigoMessage.style.marginTop = '5px';
-    codigoMessage.style.fontSize = '14px';
-    codigoField.parentNode.appendChild(codigoMessage);
+            // Reseta mensagens e estilos para um novo estado
+            codigoMessage.text('');
+            codigoMessage.css({ color: '' });
+            codigoField.css({ borderColor: '' });
 
-    // Evento de blur
-    codigoField.addEventListener('blur', function () {
-        const codigo = codigoField.value.trim();
-        const formType = document.querySelector('input[name="form_id"]').value === '1b426a8' ? 'degustacao' : 'professor';
+            // Se o campo está vazio, exibe uma mensagem de erro
+            if (!codigo) {
+                codigoMessage.text('O código de acesso é obrigatório.');
+                codigoMessage.css({ color: 'red' });
+                codigoField.css({ borderColor: 'red' });
+                return;
+            }
 
-        // Reseta mensagens e estilos
-        codigoMessage.textContent = '';
-        codigoMessage.style.color = '';
-        codigoField.style.borderColor = '';
+            // Mostra um indicador de carregamento enquanto valida o código
+            codigoMessage.text('Validando código...');
+            codigoMessage.css({ color: 'blue' });
 
-        if (!codigo) {
-            codigoMessage.textContent = 'O código de acesso é obrigatório.';
-            codigoMessage.style.color = 'red';
-            codigoField.style.borderColor = 'red';
-            return;
-        }
-
-        // Mostra indicador de carregamento
-        codigoMessage.textContent = 'Validando código...';
-        codigoMessage.style.color = 'blue';
-
-        // Envia a requisição AJAX
-        fetch(ajaxurl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                action: 'validate_access_code',
-                codigo: codigo,
-                form_type: formType,
-            }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    codigoMessage.textContent = data.data.message;
-                    codigoMessage.style.color = 'green';
-                    codigoField.style.borderColor = 'green';
-                    codigoField.setAttribute('data-valid', 'true');
-                } else {
-                    codigoMessage.textContent = data.data.message;
-                    codigoMessage.style.color = 'red';
-                    codigoField.style.borderColor = 'red';
-                    codigoField.setAttribute('data-valid', 'false');
-                }
-            })
-            .catch((error) => {
-                codigoMessage.textContent = 'Erro ao validar o código. Tente novamente.';
-                codigoMessage.style.color = 'red';
-                codigoField.style.borderColor = 'red';
-                console.error('Erro na validação AJAX:', error);
+            // Envia a requisição AJAX para validar o código
+            $.ajax({
+                url: ajaxurl, // URL do WordPress para AJAX (admin-ajax.php)
+                type: 'POST', // Método HTTP
+                dataType: 'json', // Tipo de resposta esperada
+                data: {
+                    action: 'validate_access_code', // Ação registrada no backend
+                    codigo: codigo, // Código digitado pelo usuário
+                    form_type: formType, // Tipo de formulário (degustacao ou professor)
+                },
+                success: function (response) {
+                    // Se o código for válido
+                    if (response.success) {
+                        codigoMessage.text(response.data.message); // Mensagem de sucesso
+                        codigoMessage.css({ color: 'green' });
+                        codigoField.css({ borderColor: 'green' });
+                        codigoField.attr('data-valid', 'true'); // Marca o campo como válido
+                    } else {
+                        // Se o código for inválido
+                        codigoMessage.text(response.data.message); // Mensagem de erro do backend
+                        codigoMessage.css({ color: 'red' });
+                        codigoField.css({ borderColor: 'red' });
+                        codigoField.attr('data-valid', 'false'); // Marca o campo como inválido
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Em caso de erro na requisição AJAX
+                    codigoMessage.text('Erro ao validar o código. Tente novamente.');
+                    codigoMessage.css({ color: 'red' });
+                    codigoField.css({ borderColor: 'red' });
+                    console.error('Erro na validação AJAX:', error); // Log no console para depuração
+                },
             });
-    });
+        });
 
-    // Bloqueia envio se o código não for válido
-    const form = codigoField.closest('form');
-    form.addEventListener('submit', function (event) {
-        if (codigoField.getAttribute('data-valid') !== 'true') {
-            event.preventDefault();
-            codigoMessage.textContent = 'Por favor, corrija o código antes de enviar.';
-            codigoMessage.style.color = 'red';
-        }
+        // Evento de submissão do formulário
+        const form = codigoField.closest('form'); // Seleciona o formulário mais próximo do campo
+        form.on('submit', function (event) {
+            // Impede o envio se o código não for válido
+            if (codigoField.attr('data-valid') !== 'true') {
+                event.preventDefault(); // Cancela a submissão do formulário
+                codigoMessage.text('Por favor, corrija o código antes de enviar.');
+                codigoMessage.css({ color: 'red' });
+            }
+        });
     });
-});
+})(jQuery);
