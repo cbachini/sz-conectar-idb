@@ -2,6 +2,7 @@
     'use strict';
 
     $(document).ready(function () {
+        // Seleciona o campo de código
         const codigoField = $('#form-field-codigo');
         if (!codigoField.length) return;
 
@@ -11,29 +12,33 @@
         });
         codigoField.parent().append(codigoMessage);
 
+        // Evento de blur no campo
         codigoField.on('blur', function () {
             const codigo = codigoField.val().trim();
-            const formId = $('input[name="form_id"]').val();
-            const formType = formId === '1b426a8' ? 'degustacao' : 'professor';
+            const formType = 'professor'; // Ajuste conforme necessário
 
-            console.log('Iniciando validação do código...');
-            console.log('Código digitado:', codigo);
-            console.log('Tipo de formulário:', formType);
+            // Limpa mensagens anteriores
+            codigoMessage.text('');
 
-            codigoMessage.text('Validando código...').css('color', 'blue');
+            // Se o código estiver vazio, exibe uma mensagem
+            if (!codigo) {
+                codigoMessage.text('O código é obrigatório.').css('color', 'red');
+                return;
+            }
 
+            // Envia a requisição AJAX
             $.ajax({
-                url: myAjax.ajaxurl,
                 method: 'POST',
                 dataType: 'json',
+                url: myAjax.ajaxurl, // URL do admin-ajax.php
                 data: {
-                    action: 'validate_access_code',
-                    codigo: codigo,
-                    form_type: formType,
-                    nonce: myAjax.nonce,
+                    action: 'validate_access_code', // Ação no backend
+                    codigo: codigo, // Código de acesso digitado
+                    form_type: formType, // Tipo de formulário
+                    _wpnonce: myAjax.nonce, // Nonce gerado pelo backend
                 },
-                success: function (response) {
-                    console.log('Resposta AJAX recebida:', response);
+            })
+                .done(function (response) {
                     if (response.success) {
                         codigoMessage.text(response.data.message).css('color', 'green');
                         codigoField.css({ borderColor: 'green' });
@@ -41,13 +46,10 @@
                         codigoMessage.text(response.data.message).css('color', 'red');
                         codigoField.css({ borderColor: 'red' });
                     }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Erro na requisição AJAX:', error);
-                    console.error('Detalhes:', xhr.responseText);
+                })
+                .fail(function () {
                     codigoMessage.text('Erro ao validar o código.').css('color', 'red');
-                },
-            });
+                });
         });
     });
 })(jQuery);
