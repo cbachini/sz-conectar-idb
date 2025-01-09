@@ -1,44 +1,44 @@
 <?php
 
-if (!function_exists('validate_access_code')) {
-    function validate_access_code($record, $ajax_handler) {
-        // Obtém o ID do formulário
-        $form_id = $record->get_form_settings('form_id');
+class Sz_Conectar_Idb_Codes {
 
-        // Identifica a tabela correta com base no ID do formulário
+    public static function init() {
+        add_action('wp_ajax_validate_access_code', [self::class, 'ajax_validate_access_code']);
+        add_action('wp_ajax_nopriv_validate_access_code', [self::class, 'ajax_validate_access_code']);
+    }
+
+    public static function ajax_validate_access_code() {
+        // Verifica se o código foi enviado
+        if (!isset($_POST['codigo']) || empty($_POST['codigo'])) {
+            wp_send_json_error(['message' => __('O código de acesso é obrigatório.', 'sz-conectar-idb')]);
+        }
+
+        $codigo = sanitize_text_field($_POST['codigo']);
         global $wpdb;
 
-        if ($form_id === '1b426a8') {
-            $table_name = $wpdb->prefix . 'sz_tasting_codes'; // Tabela de degustação
-        } elseif ($form_id === '605fd56') {
-            $table_name = $wpdb->prefix . 'sz_access_codes'; // Tabela de professores
+        // Determina a tabela correta com base no tipo de formulário
+        $form_type = sanitize_text_field($_POST['form_type']);
+        if ($form_type === 'degustacao') {
+            $table_name = $wpdb->prefix . 'sz_tasting_codes';
+        } elseif ($form_type === 'professor') {
+            $table_name = $wpdb->prefix . 'sz_access_codes';
         } else {
-            return; // Ignorar outros formulários
+            wp_send_json_error(['message' => __('Tipo de formulário inválido.', 'sz-conectar-idb')]);
         }
 
-        // Obtém os campos do formulário
-        $raw_fields = $record->get('fields');
-        $fields = [];
-        foreach ($raw_fields as $id => $field) {
-            $fields[$field['name']] = $field;
-        }
-
-        // Obtém o valor do campo "codigo"
-        $codigo = sanitize_text_field($fields['form_fields[codigo]']['value']);
-
-        // Verifica se o código existe na tabela correspondente
+        // Consulta o banco de dados
         $code = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE access_code = %s AND is_active = 1",
             $codigo
         ));
 
         if (!$code) {
-            $ajax_handler->add_error('form_fields[codigo]', __('Código de acesso inválido ou inativo.', 'sz-conectar-idb'));
-            return;
+            wp_send_json_error(['message' => __('Código de acesso inválido ou inativo.', 'sz-conectar-idb')]);
         }
 
-        // Caso o código seja válido, nenhuma ação adicional é necessária neste ponto.
+        // Retorna sucesso
+        wp_send_json_success(['message' => __('Código de acesso válido.', 'sz-conectar-idb')]);
     }
-
-    add_action('elementor_pro/forms/validation', 'validate_access_code', 10, 2);
 }
+
+Sz_Conectar_Idb_Codes::init();
