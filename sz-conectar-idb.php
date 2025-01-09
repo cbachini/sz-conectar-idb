@@ -43,19 +43,22 @@ function run_sz_conectar_idb() {
 run_sz_conectar_idb();
 
 function sz_conectar_idb_enqueue_public_scripts() {
-    // Enfileira o script público apenas no frontend
-    if (!is_admin()) {
-        wp_enqueue_script(
-            'sz-conectar-idb-public', // Handle do script
-            plugin_dir_url(__FILE__) . 'public/js/sz-conectar-idb-public.js', // Caminho do script
-            ['jquery'], // Dependência
-            '1.0', // Versão
-            true // Carregar no footer
-        );
-
-        // Passa o URL do AJAX para o script
-        wp_localize_script('sz-conectar-idb-public', 'ajaxurl', admin_url('admin-ajax.php'));
+    if (is_admin()) {
+        return; // Não carrega no admin
     }
+
+    wp_enqueue_script(
+        'sz-conectar-idb-public',
+        plugin_dir_url(__FILE__) . 'public/js/sz-conectar-idb-public.js',
+        ['jquery'],
+        SZ_CONECTAR_IDB_VERSION,
+        true
+    );
+
+    wp_localize_script('sz-conectar-idb-public', 'myAjax', [
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('validate_access_code_nonce'),
+    ]);
 }
 add_action('wp_enqueue_scripts', 'sz_conectar_idb_enqueue_public_scripts');
 
