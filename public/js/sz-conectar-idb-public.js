@@ -30,12 +30,12 @@
             $.ajax({
                 method: 'POST',
                 dataType: 'json',
-                url: myAjax.ajaxurl, // URL do admin-ajax.php
+                url: szConectarAjax.ajaxurl, // URL do admin-ajax.php
                 data: {
                     action: 'validate_access_code', // Ação no backend
                     codigo: codigo, // Código de acesso digitado
                     form_type: formType, // Tipo de formulário
-                    _wpnonce: myAjax.nonce, // Nonce gerado pelo backend
+                    _wpnonce: szConectarAjax.nonce, // Nonce gerado pelo backend
                 },
             })
                 .done(function (response) {
