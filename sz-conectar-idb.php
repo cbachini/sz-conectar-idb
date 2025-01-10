@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name:       Soyuz - IDB
  * Plugin URI:        https://soyuz.com.br
@@ -20,19 +21,32 @@ if (!defined('WPINC')) {
 // Define plugin version.
 define('SZ_CONECTAR_IDB_VERSION', '2.0.0');
 
-// Load required files for the plugin
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php';
+// Autoload includes.
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-loader.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-activator.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-deactivator.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortcodes.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-i18n.php';
+require_once plugin_dir_path(__FILE__) . 'admin/class-sz-conectar-idb-admin.php';
+require_once plugin_dir_path(__FILE__) . 'public/class-sz-conectar-idb-public.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php'; // Adicionado para AJAX
 
-// Register activation and deactivation hooks
+// Register activation and deactivation hooks.
 register_activation_hook(__FILE__, ['Sz_Conectar_Idb_Activator', 'activate']);
 register_deactivation_hook(__FILE__, ['Sz_Conectar_Idb_Deactivator', 'deactivate']);
 
-// Initialize the plugin
-add_action('init', function () {
+// Initialize the plugin.
+function run_sz_conectar_idb() {
+    $plugin = new Sz_Conectar_Idb();
+    $plugin->run();
+
+    // Garante o registro das ações AJAX
     if (class_exists('Sz_Conectar_Idb_Codes')) {
-        Sz_Conectar_Idb_Codes::init();
+        add_action('init', ['Sz_Conectar_Idb_Codes', 'init']);
     }
-});
+}
+run_sz_conectar_idb();
 
 /**
  * Enfileira scripts públicos e garante o nonce para AJAX
@@ -50,6 +64,7 @@ function sz_conectar_idb_enqueue_public_scripts() {
         true
     );
 
+    // Passa a URL AJAX e o nonce para o script
     wp_localize_script('soyuz_sz_conectar_idb_public', 'szConectarAjax', [
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('validate_access_code_nonce'),
