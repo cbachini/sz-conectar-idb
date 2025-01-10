@@ -5,8 +5,9 @@
         // Seleciona o campo de código e o formulário
         const codigoField = $('#form-field-codigo');
         const form = codigoField.closest('form.elementor-form'); // Seleciona o formulário do Elementor
+        const submitButton = form.find('button[type="submit"]'); // Seleciona o botão de submissão
 
-        if (!codigoField.length || !form.length) return;
+        if (!codigoField.length || !form.length || !submitButton.length) return;
 
         const codigoMessage = $('<div></div>').css({
             marginTop: '5px',
@@ -25,6 +26,9 @@
 
         let isCodeValid = false; // Flag para rastrear se o código é válido
 
+        // Desabilita o botão de submissão inicialmente
+        submitButton.prop('disabled', true);
+
         // Evento de blur no campo
         codigoField.on('blur', function () {
             const codigo = codigoField.val().trim();
@@ -34,6 +38,7 @@
             codigoMessage.text('');
             codigoField.css({ borderColor: '' });
             isCodeValid = false; // Reseta a flag de validação
+            submitButton.prop('disabled', true); // Desabilita o botão enquanto valida
 
             // Se o código estiver vazio, exibe uma mensagem
             if (!codigo) {
@@ -64,14 +69,17 @@
                         codigoMessage.text(response.data.message).css('color', 'green');
                         codigoField.css({ borderColor: 'green' });
                         isCodeValid = true; // Marca como válido
+                        submitButton.prop('disabled', false); // Habilita o botão
                     } else {
                         codigoMessage.text(response.data.message).css('color', 'red');
                         codigoField.css({ borderColor: 'red' });
+                        submitButton.prop('disabled', true); // Mantém o botão desabilitado
                     }
                 })
                 .fail(function () {
                     loadingIndicator.hide();
                     codigoMessage.text('Erro ao validar o código.').css('color', 'red');
+                    submitButton.prop('disabled', true); // Desabilita o botão em caso de erro
                 });
         });
 
