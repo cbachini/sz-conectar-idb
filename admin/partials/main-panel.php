@@ -61,19 +61,25 @@
             <tbody>
                 <?php
                 global $wp_filter;
-                $ajax_actions = array_merge(
-                    array_keys($wp_filter['wp_ajax'] ?? []),
-                    array_keys($wp_filter['wp_ajax_nopriv'] ?? [])
-                );
+                
+                $registered_actions = [];
+                if (isset($wp_filter['wp_ajax'])) {
+                    foreach ($wp_filter['wp_ajax'] as $key => $value) {
+                        $registered_actions[] = ['action' => $key, 'privacy' => esc_html__('Somente Usuários Autenticados', 'sz-conectar-idb')];
+                    }
+                }
 
-                if (!empty($ajax_actions)) {
-                    foreach ($ajax_actions as $action) {
-                        $is_privileged = isset($wp_filter['wp_ajax'][$action]);
-                        $privacy = $is_privileged ? esc_html__('Somente Usuários Autenticados', 'sz-conectar-idb') : esc_html__('Público', 'sz-conectar-idb');
+                if (isset($wp_filter['wp_ajax_nopriv'])) {
+                    foreach ($wp_filter['wp_ajax_nopriv'] as $key => $value) {
+                        $registered_actions[] = ['action' => $key, 'privacy' => esc_html__('Público', 'sz-conectar-idb')];
+                    }
+                }
 
+                if (!empty($registered_actions)) {
+                    foreach ($registered_actions as $registered_action) {
                         echo '<tr>
-                            <td style="padding: 10px; border-bottom: 1px solid #EEE;">' . esc_html($action) . '</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #EEE;">' . esc_html($privacy) . '</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #EEE;">' . esc_html($registered_action['action']) . '</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #EEE;">' . esc_html($registered_action['privacy']) . '</td>
                         </tr>';
                     }
                 } else {
