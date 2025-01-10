@@ -3,10 +3,18 @@
 class Sz_Conectar_Idb_Codes {
 
     /**
+     * Inicializa a classe registrando as ações AJAX
+     */
+    public static function init() {
+        // Registra as ações AJAX
+        add_action('wp_ajax_nopriv_validate_access_code', [__CLASS__, 'validate_access_code']);
+        add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
+    }
+
+    /**
      * Validação do Código de Acesso via AJAX
      */
-    add_action('wp_ajax_nopriv_validate_access_code', 'validate_access_code');
-    function validate_access_code() {
+    public static function validate_access_code() {
         // Verifica o nonce
         if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'validate_access_code_nonce')) {
             wp_send_json_error(['message' => 'Nonce inválido ou ausente.']);
@@ -40,7 +48,7 @@ class Sz_Conectar_Idb_Codes {
     
         wp_send_json_success(['message' => 'Código válido!']);
     }
-    
 }
 
+// Inicializa a classe
 Sz_Conectar_Idb_Codes::init();
