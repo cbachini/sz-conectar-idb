@@ -4,7 +4,7 @@
     $(document).ready(function () {
         // Seleciona o campo de código e o formulário
         const codigoField = $('#form-field-codigo');
-        const form = codigoField.closest('form'); // Seleciona o formulário ao qual o campo pertence
+        const form = codigoField.closest('form.elementor-form'); // Seleciona o formulário do Elementor
 
         if (!codigoField.length || !form.length) return;
 
