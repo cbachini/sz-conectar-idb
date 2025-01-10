@@ -35,11 +35,6 @@ class Sz_Conectar_Idb_Codes {
             ? $wpdb->prefix . 'sz_teacher_codes' 
             : $wpdb->prefix . 'sz_tasting_codes';
 
-        // Verifica se a tabela existe
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
-            wp_send_json_error(['message' => 'Tabela não encontrada no banco de dados.']);
-        }
-
         // Consulta o banco de dados para verificar se o código existe e está ativo
         $query = $wpdb->prepare(
             "SELECT * FROM $table_name WHERE access_code = %s AND is_active = 1",
