@@ -35,11 +35,12 @@ class Sz_Conectar_Idb_Codes {
             ? $wpdb->prefix . 'sz_teacher_codes' 
             : $wpdb->prefix . 'sz_tasting_codes';
 
-        // Consulta o banco de dados para verificar se o código existe e está ativo
-        $query = $wpdb->prepare(
-            "SELECT * FROM $table_name WHERE access_code = %s AND is_active = 1",
-            $codigo
-        );
+        // Log para depuração
+        error_log("Tabela utilizada: $table_name");
+
+        // Consulta o banco de dados para verificar se o código existe
+        $query = $wpdb->prepare("SELECT * FROM $table_name WHERE access_code = %s", $codigo);
+        error_log("Query executada: " . $query);
         $code = $wpdb->get_row($query);
 
         if (!$code) {
