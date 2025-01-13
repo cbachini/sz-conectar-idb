@@ -8,11 +8,28 @@
         const submitButton = form.find('button[type="submit"]'); // Seleciona o botão de submissão
 
         if (!codigoField.length || !form.length || !submitButton.length) {
-            console.warn('Elemento(s) necessário(s) não encontrado(s): campo de código ou formulário ou botão de submissão.');
+            console.warn('Elemento(s) necessário(s) não encontrado(s): campo de código, formulário ou botão de submissão.');
             return;
         }
 
         console.log('Campo de código e formulário encontrados. Iniciando validação.');
+
+        const formIdField = form.find('input[name="form_id"]'); // Seleciona o campo form_id
+        const formIdValue = formIdField.val(); // Obtém o valor de form_id
+
+        // Determina o tipo de formulário com base no valor de form_id
+        const formType = formIdValue === '605fd56' 
+            ? 'professor' 
+            : formIdValue === '1b426a8' 
+            ? 'degustacao' 
+            : null;
+
+        if (!formType) {
+            console.error('Tipo de formulário não identificado. Verifique os valores de form_id.');
+            return;
+        }
+
+        console.log('Tipo de formulário identificado:', formType);
 
         const codigoMessage = $('<div></div>').css({
             marginTop: '5px',
@@ -38,7 +55,6 @@
         // Evento de blur no campo
         codigoField.on('blur', function () {
             const codigo = codigoField.val().trim();
-            const formType = 'professor'; // Ajuste conforme necessário
 
             console.log('Campo de código perdeu o foco.');
             console.log('Valor do código:', codigo);
