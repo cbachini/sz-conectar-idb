@@ -1,94 +1,79 @@
-(function ($) {
-    'use strict';
+<?php
 
-    $(document).ready(function () {
-        // Seleciona o campo de código e o formulário
-        const codigoField = $('#form-field-codigo');
-        const form = codigoField.closest('form.elementor-form'); // Seleciona o formulário do Elementor
-        const submitButton = form.find('button[type="submit"]'); // Seleciona o botão de submissão
+class Sz_Conectar_Idb_Codes {
 
-        if (!codigoField.length || !form.length || !submitButton.length) return;
+    /**
+     * Inicializa a classe registrando as ações AJAX
+     */
+    public static function init() {
+        // Registra as ações AJAX
+        add_action('wp_ajax_nopriv_validate_access_code', [__CLASS__, 'validate_access_code']);
+        add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
+    }
 
-        const codigoMessage = $('<div></div>').css({
-            marginTop: '5px',
-            fontSize: '14px',
-        });
-        codigoField.parent().append(codigoMessage);
+    /**
+     * Validação do Código de Acesso via AJAX
+     */
+    public static function validate_access_code() {
+        // Verifica o nonce
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'validate_access_code_nonce')) {
+            error_log('Nonce inválido ou ausente.');
+            wp_send_json_error(['message' => 'Nonce inválido ou ausente.']);
+        }
 
-        // Adiciona indicador de carregamento
-        const loadingIndicator = $('<div>Validando...</div>').css({
-            marginTop: '5px',
-            fontSize: '14px',
-            color: 'blue',
-            display: 'none',
-        });
-        codigoField.parent().append(loadingIndicator);
+        // Valida os parâmetros
+        if (empty($_POST['codigo'])) {
+            error_log('O código de acesso é obrigatório.');
+            wp_send_json_error(['message' => 'O código de acesso é obrigatório.']);
+        }
 
-        let isCodeValid = false; // Flag para rastrear se o código é válido
+        if (empty($_POST['form_type'])) {
+            error_log('Tipo de formulário não especificado.');
+            wp_send_json_error(['message' => 'Tipo de formulário não especificado.']);
+        }
 
-        // Desabilita o botão de submissão inicialmente
-        submitButton.prop('disabled', true);
+        global $wpdb;
+        $codigo = sanitize_text_field($_POST['codigo']);
+        $form_type = sanitize_text_field($_POST['form_type']);
 
-        // Evento de blur no campo
-        codigoField.on('blur', function () {
-            const codigo = codigoField.val().trim();
-            const formType = 'professor'; // Ajuste conforme necessário
+        // Define a tabela com base no tipo de formulário
+        $table_name = $form_type === 'professor' 
+            ? $wpdb->prefix . 'sz_access_codes' 
+            : $wpdb->prefix . 'sz_tasting_codes';
 
-            // Limpa mensagens anteriores
-            codigoMessage.text('');
-            codigoField.css({ borderColor: '' });
-            isCodeValid = false; // Reseta a flag de validação
-            submitButton.prop('disabled', true); // Desabilita o botão enquanto valida
+        // Loga a tabela usada
+        error_log("Tabela usada: $table_name");
 
-            // Se o código estiver vazio, exibe uma mensagem
-            if (!codigo) {
-                codigoMessage.text('O código é obrigatório.').css('color', 'red');
-                return;
-            }
+        // Consulta o banco de dados
+        $query = $wpdb->prepare("SELECT * FROM $table_name WHERE access_code = %s AND is_active = 1", $codigo);
+        $code = $wpdb->get_row($query);
 
-            // Mostra indicador de carregamento
-            loadingIndicator.show();
+        // Loga a consulta e o resultado
+        error_log("Consulta SQL: $query");
+        error_log("Resultado da consulta: " . json_encode($code));
 
-            // Envia a requisição AJAX
-            $.ajax({
-                method: 'POST',
-                dataType: 'json',
-                url: szConectarAjax.ajaxurl, // URL do admin-ajax.php
-                data: {
-                    action: 'validate_access_code', // Ação no backend
-                    codigo: codigo, // Código de acesso digitado
-                    form_type: formType, // Tipo de formulário
-                    _wpnonce: szConectarAjax.nonce, // Nonce gerado pelo backend
-                },
-            })
-                .done(function (response) {
-                    // Oculta indicador de carregamento
-                    loadingIndicator.hide();
+        if (!$code) {
+            error_log('Código inválido ou inativo.');
+            wp_send_json_error(['message' => 'Código inválido ou inativo.']);
+        }
 
-                    if (response.success) {
-                        codigoMessage.text(response.data.message).css('color', 'green');
-                        codigoField.css({ borderColor: 'green' });
-                        isCodeValid = true; // Marca como válido
-                        submitButton.prop('disabled', false); // Habilita o botão
-                    } else {
-                        codigoMessage.text(response.data.message).css('color', 'red');
-                        codigoField.css({ borderColor: 'red' });
-                        submitButton.prop('disabled', true); // Mantém o botão desabilitado
-                    }
-                })
-                .fail(function () {
-                    loadingIndicator.hide();
-                    codigoMessage.text('Erro ao validar o código.').css('color', 'red');
-                    submitButton.prop('disabled', true); // Desabilita o botão em caso de erro
-                });
-        });
+        // Validação do limite de usos
+        if ($code->used_count >= $code->max_uses) {
+            error_log('O limite de uso deste código foi atingido.');
+            wp_send_json_error(['message' => 'O limite de uso deste código foi atingido.']);
+        }
 
-        // Evento de submissão do formulário
-        form.on('submit', function (e) {
-            if (!isCodeValid) {
-                e.preventDefault(); // Impede a submissão do formulário
-                codigoMessage.text('Por favor, valide o código antes de enviar.').css('color', 'red');
-            }
-        });
-    });
-})(jQuery);
+        // Validação da data de validade
+        if (strtotime($code->valid_until) < time()) {
+            error_log('O código está expirado.');
+            wp_send_json_error(['message' => 'O código está expirado.']);
+        }
+
+        // Resposta de sucesso
+        error_log('Código válido!');
+        wp_send_json_success(['message' => 'Código válido!']);
+    }
+}
+
+// Inicializa a classe
+Sz_Conectar_Idb_Codes::init();
