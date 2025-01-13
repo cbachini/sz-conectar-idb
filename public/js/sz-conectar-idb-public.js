@@ -4,8 +4,8 @@
     $(document).ready(function () {
         // Seleciona o campo de código e o formulário
         const codigoField = $('#form-field-codigo');
-        const form = codigoField.closest('form.elementor-form'); // Seleciona o formulário do Elementor
-        const submitButton = form.find('button[type="submit"]'); // Seleciona o botão de submissão
+        const form = codigoField.closest('form.elementor-form');
+        const submitButton = form.find('button[type="submit"]');
 
         if (!codigoField.length || !form.length || !submitButton.length) {
             console.warn('Elemento(s) necessário(s) não encontrado(s): campo de código, formulário ou botão de submissão.');
@@ -14,8 +14,8 @@
 
         console.log('Campo de código e formulário encontrados. Iniciando validação.');
 
-        const formIdField = form.find('input[name="form_id"]'); // Seleciona o campo form_id
-        const formIdValue = formIdField.val(); // Obtém o valor de form_id
+        const formIdField = form.find('input[name="form_id"]');
+        const formIdValue = formIdField.val();
 
         // Determina o tipo de formulário com base no valor de form_id
         const formType = formIdValue === '605fd56' 
@@ -37,7 +37,6 @@
         });
         codigoField.parent().append(codigoMessage);
 
-        // Adiciona indicador de carregamento
         const loadingIndicator = $('<div>Validando...</div>').css({
             marginTop: '5px',
             fontSize: '14px',
@@ -46,13 +45,12 @@
         });
         codigoField.parent().append(loadingIndicator);
 
-        let isCodeValid = false; // Flag para rastrear se o código é válido
+        let isCodeValid = false;
 
         // Desabilita o botão de submissão inicialmente
         submitButton.prop('disabled', true);
         console.log('Botão de submissão desabilitado inicialmente.');
 
-        // Evento de blur no campo
         codigoField.on('blur', function () {
             const codigo = codigoField.val().trim();
 
@@ -60,34 +58,30 @@
             console.log('Valor do código:', codigo);
             console.log('Tipo de formulário:', formType);
 
-            // Limpa mensagens anteriores
             codigoMessage.text('');
             codigoField.css({ borderColor: '' });
-            isCodeValid = false; // Reseta a flag de validação
-            submitButton.prop('disabled', true); // Desabilita o botão enquanto valida
+            isCodeValid = false;
+            submitButton.prop('disabled', true);
             console.log('Mensagens limpas e botão desabilitado.');
 
-            // Se o código estiver vazio, exibe uma mensagem
             if (!codigo) {
                 console.warn('Campo de código está vazio.');
                 codigoMessage.text('O código é obrigatório.').css('color', 'red');
                 return;
             }
 
-            // Mostra indicador de carregamento
             loadingIndicator.show();
             console.log('Indicador de carregamento exibido.');
 
-            // Envia a requisição AJAX
             $.ajax({
                 method: 'POST',
                 dataType: 'json',
-                url: szConectarAjax.ajaxurl, // URL do admin-ajax.php
+                url: szConectarAjax.ajaxurl,
                 data: {
-                    action: 'validate_access_code', // Ação no backend
-                    codigo: codigo, // Código de acesso digitado
-                    form_type: formType, // Tipo de formulário
-                    _wpnonce: szConectarAjax.nonce, // Nonce gerado pelo backend
+                    action: 'validate_access_code',
+                    codigo: codigo,
+                    form_type: formType,
+                    _wpnonce: szConectarAjax.nonce,
                 },
                 beforeSend: function () {
                     console.log('Requisição AJAX enviada:', {
@@ -99,38 +93,37 @@
                 },
             })
                 .done(function (response) {
-                    // Oculta indicador de carregamento
                     loadingIndicator.hide();
                     console.log('Resposta recebida:', response);
 
                     if (response.success) {
                         console.info('Código validado com sucesso:', response.data.message);
+                        console.log('Usuários que já usaram este código:', response.data.total_users);
                         codigoMessage.text(response.data.message).css('color', 'green');
                         codigoField.css({ borderColor: 'green' });
-                        isCodeValid = true; // Marca como válido
-                        submitButton.prop('disabled', false); // Habilita o botão
+                        isCodeValid = true;
+                        submitButton.prop('disabled', false);
                         console.log('Botão de submissão habilitado.');
                     } else {
                         console.warn('Erro na validação do código:', response.data.message);
                         codigoMessage.text(response.data.message).css('color', 'red');
                         codigoField.css({ borderColor: 'red' });
-                        submitButton.prop('disabled', true); // Mantém o botão desabilitado
+                        submitButton.prop('disabled', true);
                     }
                 })
                 .fail(function (jqXHR, textStatus) {
                     loadingIndicator.hide();
                     console.error('Erro na requisição AJAX:', textStatus);
                     codigoMessage.text('Erro ao validar o código.').css('color', 'red');
-                    submitButton.prop('disabled', true); // Desabilita o botão em caso de erro
+                    submitButton.prop('disabled', true);
                 });
         });
 
-        // Evento de submissão do formulário
         form.on('submit', function (e) {
             console.log('Evento de submissão acionado.');
 
             if (!isCodeValid) {
-                e.preventDefault(); // Impede a submissão do formulário
+                e.preventDefault();
                 console.warn('Tentativa de envio com código inválido.');
                 codigoMessage.text('Por favor, valide o código antes de enviar.').css('color', 'red');
             } else {

@@ -69,19 +69,11 @@ class Sz_Conectar_Idb_Codes {
 
         $total_usuarios = count($user_query->get_results());
 
-        // Atualiza o campo used_count na tabela do banco de dados
-        $wpdb->update(
-            $table_name,
-            ['used_count' => $total_usuarios],
-            ['access_code' => $codigo],
-            ['%d'],
-            ['%s']
-        );
-
         // Resposta de sucesso
         wp_send_json_success([
             'message' => 'Código válido!',
-            'remaining_uses' => $code->max_uses - $total_usuarios
+            'remaining_uses' => $code->max_uses - $total_usuarios,
+            'total_users' => $total_usuarios // Retorna o total de usuários que utilizaram o código
         ]);
     }
 
