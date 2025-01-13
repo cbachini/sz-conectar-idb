@@ -56,9 +56,9 @@ class Sz_Conectar_Idb_Codes {
             wp_send_json_error(['message' => 'O código está expirado.']);
         }
 
-        // Conta o número de usuários que já utilizam este código (campo ACF "codigo")
+        // Conta o número de usuários que já utilizam este código (campo ACF "field_66d09389d5d96")
         $user_query = new WP_User_Query([
-            'meta_key'   => 'codigo',
+            'meta_key'   => 'field_66d09389d5d96',
             'meta_value' => $codigo,
             'fields'     => 'ID' // Retorna apenas os IDs dos usuários
         ]);
