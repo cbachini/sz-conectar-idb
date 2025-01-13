@@ -3,12 +3,16 @@
 class Sz_Conectar_Idb_Codes {
 
     /**
-     * Inicializa a classe registrando as ações AJAX
+     * Inicializa a classe registrando as ações AJAX e os hooks de usuário
      */
     public static function init() {
         // Registra as ações AJAX
         add_action('wp_ajax_nopriv_validate_access_code', [__CLASS__, 'validate_access_code']);
         add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
+
+        // Registra os hooks para atualizar o banco de dados ao criar/atualizar usuários
+        add_action('user_register', [__CLASS__, 'update_code_usage']);
+        add_action('profile_update', [__CLASS__, 'update_code_usage']);
     }
 
     /**
@@ -79,6 +83,41 @@ class Sz_Conectar_Idb_Codes {
             'message' => 'Código válido!',
             'remaining_uses' => $code->max_uses - $total_usuarios
         ]);
+    }
+
+    /**
+     * Atualiza o campo `used_count` no banco de dados quando usuários são criados ou atualizados
+     */
+    public static function update_code_usage($user_id) {
+        global $wpdb;
+
+        // Recupera o código do usuário a partir do campo ACF
+        $codigo = get_field('field_66d09389d5d96', 'user_' . $user_id);
+
+        if (!$codigo) {
+            return; // Se o usuário não tem um código associado, não faz nada
+        }
+
+        // Conta todos os usuários que possuem este código
+        $user_query = new WP_User_Query([
+            'meta_key'   => 'field_66d09389d5d96',
+            'meta_value' => $codigo,
+            'fields'     => 'ID' // Retorna apenas os IDs dos usuários
+        ]);
+
+        $total_usuarios = count($user_query->get_results());
+
+        // Define a tabela com base no código
+        $table_name = $wpdb->prefix . 'sz_access_codes';
+
+        // Atualiza o campo `used_count` no banco de dados
+        $wpdb->update(
+            $table_name,
+            ['used_count' => $total_usuarios],
+            ['access_code' => $codigo],
+            ['%d'],
+            ['%s']
+        );
     }
 }
 
