@@ -1,79 +1,125 @@
-<?php
+(function ($) {
+    'use strict';
 
-class Sz_Conectar_Idb_Codes {
+    $(document).ready(function () {
+        // Seleciona o campo de código e o formulário
+        const codigoField = $('#form-field-codigo');
+        const form = codigoField.closest('form.elementor-form'); // Seleciona o formulário do Elementor
+        const submitButton = form.find('button[type="submit"]'); // Seleciona o botão de submissão
 
-    /**
-     * Inicializa a classe registrando as ações AJAX
-     */
-    public static function init() {
-        // Registra as ações AJAX
-        add_action('wp_ajax_nopriv_validate_access_code', [__CLASS__, 'validate_access_code']);
-        add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
-    }
-
-    /**
-     * Validação do Código de Acesso via AJAX
-     */
-    public static function validate_access_code() {
-        // Verifica o nonce
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'validate_access_code_nonce')) {
-            error_log('Nonce inválido ou ausente.');
-            wp_send_json_error(['message' => 'Nonce inválido ou ausente.']);
+        if (!codigoField.length || !form.length || !submitButton.length) {
+            console.warn('Elemento(s) necessário(s) não encontrado(s): campo de código ou formulário ou botão de submissão.');
+            return;
         }
 
-        // Valida os parâmetros
-        if (empty($_POST['codigo'])) {
-            error_log('O código de acesso é obrigatório.');
-            wp_send_json_error(['message' => 'O código de acesso é obrigatório.']);
-        }
+        console.log('Campo de código e formulário encontrados. Iniciando validação.');
 
-        if (empty($_POST['form_type'])) {
-            error_log('Tipo de formulário não especificado.');
-            wp_send_json_error(['message' => 'Tipo de formulário não especificado.']);
-        }
+        const codigoMessage = $('<div></div>').css({
+            marginTop: '5px',
+            fontSize: '14px',
+        });
+        codigoField.parent().append(codigoMessage);
 
-        global $wpdb;
-        $codigo = sanitize_text_field($_POST['codigo']);
-        $form_type = sanitize_text_field($_POST['form_type']);
+        // Adiciona indicador de carregamento
+        const loadingIndicator = $('<div>Validando...</div>').css({
+            marginTop: '5px',
+            fontSize: '14px',
+            color: 'blue',
+            display: 'none',
+        });
+        codigoField.parent().append(loadingIndicator);
 
-        // Define a tabela com base no tipo de formulário
-        $table_name = $form_type === 'professor' 
-            ? $wpdb->prefix . 'sz_access_codes' 
-            : $wpdb->prefix . 'sz_tasting_codes';
+        let isCodeValid = false; // Flag para rastrear se o código é válido
 
-        // Loga a tabela usada
-        error_log("Tabela usada: $table_name");
+        // Desabilita o botão de submissão inicialmente
+        submitButton.prop('disabled', true);
+        console.log('Botão de submissão desabilitado inicialmente.');
 
-        // Consulta o banco de dados
-        $query = $wpdb->prepare("SELECT * FROM $table_name WHERE access_code = %s AND is_active = 1", $codigo);
-        $code = $wpdb->get_row($query);
+        // Evento de blur no campo
+        codigoField.on('blur', function () {
+            const codigo = codigoField.val().trim();
+            const formType = 'professor'; // Ajuste conforme necessário
 
-        // Loga a consulta e o resultado
-        error_log("Consulta SQL: $query");
-        error_log("Resultado da consulta: " . json_encode($code));
+            console.log('Campo de código perdeu o foco.');
+            console.log('Valor do código:', codigo);
+            console.log('Tipo de formulário:', formType);
 
-        if (!$code) {
-            error_log('Código inválido ou inativo.');
-            wp_send_json_error(['message' => 'Código inválido ou inativo.']);
-        }
+            // Limpa mensagens anteriores
+            codigoMessage.text('');
+            codigoField.css({ borderColor: '' });
+            isCodeValid = false; // Reseta a flag de validação
+            submitButton.prop('disabled', true); // Desabilita o botão enquanto valida
+            console.log('Mensagens limpas e botão desabilitado.');
 
-        // Validação do limite de usos
-        if ($code->used_count >= $code->max_uses) {
-            error_log('O limite de uso deste código foi atingido.');
-            wp_send_json_error(['message' => 'O limite de uso deste código foi atingido.']);
-        }
+            // Se o código estiver vazio, exibe uma mensagem
+            if (!codigo) {
+                console.warn('Campo de código está vazio.');
+                codigoMessage.text('O código é obrigatório.').css('color', 'red');
+                return;
+            }
 
-        // Validação da data de validade
-        if (strtotime($code->valid_until) < time()) {
-            error_log('O código está expirado.');
-            wp_send_json_error(['message' => 'O código está expirado.']);
-        }
+            // Mostra indicador de carregamento
+            loadingIndicator.show();
+            console.log('Indicador de carregamento exibido.');
 
-        // Resposta de sucesso
-        error_log('Código válido!');
-        wp_send_json_success(['message' => 'Código válido!']);
-    }
-}
+            // Envia a requisição AJAX
+            $.ajax({
+                method: 'POST',
+                dataType: 'json',
+                url: szConectarAjax.ajaxurl, // URL do admin-ajax.php
+                data: {
+                    action: 'validate_access_code', // Ação no backend
+                    codigo: codigo, // Código de acesso digitado
+                    form_type: formType, // Tipo de formulário
+                    _wpnonce: szConectarAjax.nonce, // Nonce gerado pelo backend
+                },
+                beforeSend: function () {
+                    console.log('Requisição AJAX enviada:', {
+                        action: 'validate_access_code',
+                        codigo: codigo,
+                        form_type: formType,
+                        _wpnonce: szConectarAjax.nonce,
+                    });
+                },
+            })
+                .done(function (response) {
+                    // Oculta indicador de carregamento
+                    loadingIndicator.hide();
+                    console.log('Resposta recebida:', response);
 
-// Inicializa a classe
-Sz_Conectar_Idb_Codes::init();
+                    if (response.success) {
+                        console.info('Código validado com sucesso:', response.data.message);
+                        codigoMessage.text(response.data.message).css('color', 'green');
+                        codigoField.css({ borderColor: 'green' });
+                        isCodeValid = true; // Marca como válido
+                        submitButton.prop('disabled', false); // Habilita o botão
+                        console.log('Botão de submissão habilitado.');
+                    } else {
+                        console.warn('Erro na validação do código:', response.data.message);
+                        codigoMessage.text(response.data.message).css('color', 'red');
+                        codigoField.css({ borderColor: 'red' });
+                        submitButton.prop('disabled', true); // Mantém o botão desabilitado
+                    }
+                })
+                .fail(function (jqXHR, textStatus) {
+                    loadingIndicator.hide();
+                    console.error('Erro na requisição AJAX:', textStatus);
+                    codigoMessage.text('Erro ao validar o código.').css('color', 'red');
+                    submitButton.prop('disabled', true); // Desabilita o botão em caso de erro
+                });
+        });
+
+        // Evento de submissão do formulário
+        form.on('submit', function (e) {
+            console.log('Evento de submissão acionado.');
+
+            if (!isCodeValid) {
+                e.preventDefault(); // Impede a submissão do formulário
+                console.warn('Tentativa de envio com código inválido.');
+                codigoMessage.text('Por favor, valide o código antes de enviar.').css('color', 'red');
+            } else {
+                console.log('Formulário enviado com sucesso.');
+            }
+        });
+    });
+})(jQuery);
