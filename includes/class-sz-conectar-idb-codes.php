@@ -9,6 +9,53 @@ class Sz_Conectar_Idb_Codes {
         // Registra as ações AJAX
         add_action('wp_ajax_nopriv_validate_access_code', [__CLASS__, 'validate_access_code']);
         add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
+
+        // Hook para verificar o código ao logar
+        add_action('wp_login', [__CLASS__, 'check_code_expiration_on_login'], 10, 2);
+    }
+
+    /**
+     * Verifica a expiração do código ao logar e altera o role do usuário, se necessário
+     */
+    public static function check_code_expiration_on_login($user_login, $user) {
+        global $wpdb;
+
+        // Obtém o role do usuário
+        $role = $user->roles[0];
+
+        // Define a tabela com base no role do usuário
+        $table_name = $role === 'customer' 
+            ? $wpdb->prefix . 'sz_access_codes' 
+            : ($role === 'previewer' ? $wpdb->prefix . 'sz_tasting_codes' : null);
+
+        if (!$table_name) {
+            return; // Se o role não for customer ou previewer, não faz nada
+        }
+
+        // Obtém o código do usuário
+        $codigo = get_user_meta($user->ID, 'codigo', true);
+
+        if (!$codigo) {
+            return; // Se o usuário não tem um código associado, não faz nada
+        }
+
+        // Consulta o código no banco de dados
+        $query = $wpdb->prepare("SELECT * FROM $table_name WHERE access_code = %s", $codigo);
+        $code = $wpdb->get_row($query);
+
+        if (!$code) {
+            return; // Código não encontrado ou inválido, nenhuma ação necessária
+        }
+
+        // Verifica a validade do código
+        if ($code->valid_until !== null && strtotime($code->valid_until) < time()) {
+            // Código expirado: altera o role do usuário para visitor
+            $user->set_role('visitor');
+
+            // Registra a alteração para fins administrativos
+            update_user_meta($user->ID, 'codigo_expirado', true);
+            update_user_meta($user->ID, 'codigo_expirado_em', current_time('mysql'));
+        }
     }
 
     /**
