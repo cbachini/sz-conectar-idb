@@ -30,7 +30,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-shortco
 require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-i18n.php';
 require_once plugin_dir_path(__FILE__) . 'admin/class-sz-conectar-idb-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/class-sz-conectar-idb-public.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php'; // Adicionado para AJAX
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-codes.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sz-conectar-idb-riddles.php'; // Adicionado para Charadas
 
 // Register activation and deactivation hooks.
 register_activation_hook(__FILE__, ['Sz_Conectar_Idb_Activator', 'activate']);
@@ -41,9 +42,13 @@ function run_sz_conectar_idb() {
     $plugin = new Sz_Conectar_Idb();
     $plugin->run();
 
-    // Garante o registro das ações AJAX
+    // Registra inicialização das classes
     if (class_exists('Sz_Conectar_Idb_Codes')) {
-        add_action('init', ['Sz_Conectar_Idb_Codes', 'init']);
+        Sz_Conectar_Idb_Codes::init();
+    }
+
+    if (class_exists('Sz_Conectar_Idb_Riddles')) {
+        Sz_Conectar_Idb_Riddles::init();
     }
 }
 run_sz_conectar_idb();

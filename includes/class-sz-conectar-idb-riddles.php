@@ -1,6 +1,9 @@
 <?php
 
 class Sz_Conectar_Idb_Riddles {
+    /**
+     * Inicializa os endpoints AJAX
+     */
     public static function init() {
         add_action('wp_ajax_gerar_charada_ajax', [self::class, 'gerar_charada_ajax']);
         add_action('wp_ajax_nopriv_gerar_charada_ajax', [self::class, 'gerar_charada_ajax']);
@@ -8,10 +11,14 @@ class Sz_Conectar_Idb_Riddles {
         add_action('wp_ajax_nopriv_validar_charada_resposta', [self::class, 'validar_charada_resposta']);
     }
 
+    /**
+     * Gera uma charada aleatória com base no grupo enviado
+     */
     public static function gerar_charada_ajax() {
         global $wpdb;
 
         $grupo_id = isset($_POST['grupo_id']) ? intval($_POST['grupo_id']) : 0;
+
         if ($grupo_id) {
             $table_name = $wpdb->prefix . 'sz_access_phrases';
             $charada = $wpdb->get_row($wpdb->prepare(
@@ -29,6 +36,9 @@ class Sz_Conectar_Idb_Riddles {
         }
     }
 
+    /**
+     * Valida a resposta enviada para a charada
+     */
     public static function validar_charada_resposta() {
         global $wpdb;
 
