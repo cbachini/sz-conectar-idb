@@ -51,8 +51,8 @@ class Sz_Conectar_Idb_Codes {
             wp_send_json_error(['message' => 'O limite de uso deste código foi atingido.']);
         }
 
-        // Validação da data de validade
-        if (strtotime($code->valid_until) < time()) {
+        // Validação da data de validade (ignora validação se o campo valid_until for NULL)
+        if ($code->valid_until !== null && strtotime($code->valid_until) < time()) {
             wp_send_json_error(['message' => 'O código está expirado.']);
         }
 
