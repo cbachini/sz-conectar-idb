@@ -9,10 +9,6 @@ class Sz_Conectar_Idb_Codes {
         // Registra as ações AJAX
         add_action('wp_ajax_nopriv_validate_access_code', [__CLASS__, 'validate_access_code']);
         add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
-
-        // Registra os hooks para atualizar o banco de dados ao criar/atualizar usuários
-        add_action('user_register', [__CLASS__, 'update_code_usage']);
-        add_action('profile_update', [__CLASS__, 'update_code_usage']);
     }
 
     /**
@@ -51,7 +47,7 @@ class Sz_Conectar_Idb_Codes {
         }
 
         // Validação do limite de usos
-        if ($code->used_count >= $code->max_uses) {
+        if ($code->current_uses >= $code->max_uses) {
             wp_send_json_error(['message' => 'O limite de uso deste código foi atingido.']);
         }
 
@@ -64,9 +60,18 @@ class Sz_Conectar_Idb_Codes {
         $total_usuarios = $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value = %s",
-                'codigo',
-                $codigo
+                'codigo', // Nome do campo ACF
+                $codigo   // Valor do código
             )
+        );
+
+        // Atualiza o campo `current_uses` na tabela com o valor calculado
+        $wpdb->update(
+            $table_name,
+            ['current_uses' => $total_usuarios],
+            ['access_code' => $codigo],
+            ['%d'],
+            ['%s']
         );
 
         // Resposta de sucesso
@@ -75,41 +80,6 @@ class Sz_Conectar_Idb_Codes {
             'remaining_uses' => $code->max_uses - $total_usuarios,
             'total_users' => $total_usuarios // Retorna o total de usuários que utilizaram o código
         ]);
-    }
-
-    /**
-     * Atualiza o campo `used_count` no banco de dados quando usuários são criados ou atualizados
-     */
-    public static function update_code_usage($user_id) {
-        global $wpdb;
-
-        // Recupera o código do usuário a partir do campo ACF
-        $codigo = get_field('codigo', 'user_' . $user_id);
-
-        if (!$codigo) {
-            return; // Se o usuário não tem um código associado, não faz nada
-        }
-
-        // Conta todos os usuários que possuem este código
-        $total_usuarios = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value = %s",
-                'codigo',
-                $codigo
-            )
-        );
-
-        // Define a tabela com base no código
-        $table_name = $wpdb->prefix . 'sz_access_codes';
-
-        // Atualiza o campo `used_count` no banco de dados
-        $wpdb->update(
-            $table_name,
-            ['used_count' => $total_usuarios],
-            ['access_code' => $codigo],
-            ['%d'],
-            ['%s']
-        );
     }
 }
 
