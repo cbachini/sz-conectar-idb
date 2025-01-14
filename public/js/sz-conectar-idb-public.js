@@ -4,6 +4,27 @@
     $(document).ready(function () {
         console.log('Iniciando script público...');
 
+        // Função para criar um cookie
+        function criarCookie(nome, valor, horas) {
+            const data = new Date();
+            data.setTime(data.getTime() + (horas * 60 * 60 * 1000)); // Calcula o tempo de expiração
+            const expires = "expires=" + data.toUTCString();
+            document.cookie = `${nome}=${valor}; ${expires}; path=/`;
+            console.log(`Cookie criado: ${nome}=${valor}, válido por ${horas} horas.`);
+        }
+
+        // Função para verificar se um cookie existe
+        function obterCookie(nome) {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const c = cookies[i].trim();
+                if (c.indexOf(nome + "=") === 0) {
+                    return c.substring(nome.length + 1, c.length);
+                }
+            }
+            return null;
+        }
+
         // Verifica se o campo de código, formulário e botão de submissão estão presentes
         const codigoField = $('#form-field-codigo');
         const form = codigoField.closest('form.elementor-form');
@@ -192,8 +213,11 @@
                     if (response.success) {
                         resultMessage.html('<p style="color: green;">Resposta correta!</p>');
                         console.log('Resposta correta! Liberando elementos bloqueados.');
-                        $('#audiobook, #ebook').show(); // Desbloqueia os elementos
-                        $('#aviso-bloqueio, #aviso').hide(); // Oculta os avisos
+
+                        $('#audiobook, #ebook').show();
+                        $('#aviso-bloqueio, #aviso').hide();
+
+                        criarCookie('conteudo_desbloqueado', 'true', 24); // Cria cookie
                     } else {
                         resultMessage.html('<p style="color: red;">Resposta incorreta. Tente novamente.</p>');
                         console.warn('Resposta incorreta.');
@@ -208,5 +232,14 @@
         });
 
         carregarCharada(1); // Exemplo: grupo 1
+
+        const acessoLiberado = obterCookie('conteudo_desbloqueado');
+        if (acessoLiberado) {
+            console.log('Acesso já liberado anteriormente. Desbloqueando conteúdo automaticamente.');
+            $('#audiobook, #ebook').show();
+            $('#aviso-bloqueio, #aviso').hide();
+        } else {
+            console.log('Cookie de acesso não encontrado. Conteúdo bloqueado.');
+        }
     });
 })(jQuery);
