@@ -11,13 +11,13 @@ class Sz_Conectar_Idb_Codes {
         add_action('wp_ajax_validate_access_code', [__CLASS__, 'validate_access_code']);
 
         // Hook para verificar o código ao logar
-        add_action('wp_login', [__CLASS__, 'check_code_expiration_on_login'], 10, 2);
+        add_filter('wp_authenticate_user', [__CLASS__, 'check_code_expiration_on_login']);
     }
 
     /**
-     * Verifica a expiração do código ao logar e altera o role do usuário, se necessário
+     * Verifica a expiração do código ao logar e impede o login, se necessário
      */
-    public static function check_code_expiration_on_login($user_login, $user) {
+    public static function check_code_expiration_on_login($user) {
         global $wpdb;
 
         // Obtém o role do usuário
@@ -29,14 +29,14 @@ class Sz_Conectar_Idb_Codes {
             : ($role === 'previewer' ? $wpdb->prefix . 'sz_tasting_codes' : null);
 
         if (!$table_name) {
-            return; // Se o role não for customer ou previewer, não faz nada
+            return $user; // Se o role não for customer ou previewer, permite o login
         }
 
         // Obtém o código do usuário
         $codigo = get_user_meta($user->ID, 'codigo', true);
 
         if (!$codigo) {
-            return; // Se o usuário não tem um código associado, não faz nada
+            return $user; // Se o usuário não tem um código associado, permite o login
         }
 
         // Consulta o código no banco de dados
@@ -44,18 +44,16 @@ class Sz_Conectar_Idb_Codes {
         $code = $wpdb->get_row($query);
 
         if (!$code) {
-            return; // Código não encontrado ou inválido, nenhuma ação necessária
+            return $user; // Código não encontrado ou inválido, permite o login
         }
 
         // Verifica a validade do código
         if ($code->valid_until !== null && strtotime($code->valid_until) < time()) {
-            // Código expirado: altera o role do usuário para visitor
-            $user->set_role('visitor');
-
-            // Registra a alteração para fins administrativos
-            update_user_meta($user->ID, 'codigo_expirado', true);
-            update_user_meta($user->ID, 'codigo_expirado_em', current_time('mysql'));
+            // Código expirado: impede o login e retorna um erro
+            return new WP_Error('codigo_expirado', __('Seu código de acesso está expirado. Entre em contato com o suporte.'));
         }
+
+        return $user; // Código válido, permite o login
     }
 
     /**
