@@ -2,18 +2,19 @@
     'use strict';
 
     $(document).ready(function () {
+        console.log('Iniciando script público...');
+
         // Verifica se o campo de código, formulário e botão de submissão estão presentes
         const codigoField = $('#form-field-codigo');
         const form = codigoField.closest('form.elementor-form');
         const submitButton = form.find('button[type="submit"]');
 
         if (codigoField.length && form.length && submitButton.length) {
-            console.log('Campo de código e formulário encontrados. Iniciando validação.');
+            console.log('Formulário e campo de código encontrados.');
 
             const formIdField = form.find('input[name="form_id"]');
             const formIdValue = formIdField.val();
 
-            // Determina o tipo de formulário com base no valor de form_id
             const formType = formIdValue === '605fd56'
                 ? 'professor'
                 : formIdValue === '1b426a8'
@@ -21,7 +22,7 @@
                 : null;
 
             if (!formType) {
-                console.error('Tipo de formulário não identificado. Verifique os valores de form_id.');
+                console.error('Tipo de formulário não identificado.');
                 return;
             }
 
@@ -43,23 +44,18 @@
 
             let isCodeValid = false;
 
-            // Desabilita o botão de submissão inicialmente
             submitButton.prop('disabled', true);
             console.log('Botão de submissão desabilitado inicialmente.');
 
-            // Evento de blur no campo de código
             codigoField.on('blur', function () {
                 const codigo = codigoField.val().trim();
 
-                console.log('Campo de código perdeu o foco.');
-                console.log('Valor do código:', codigo);
-                console.log('Tipo de formulário:', formType);
+                console.log('Campo de código perdeu o foco. Valor do código:', codigo);
 
                 codigoMessage.text('');
                 codigoField.css({ borderColor: '' });
                 isCodeValid = false;
                 submitButton.prop('disabled', true);
-                console.log('Mensagens limpas e botão desabilitado.');
 
                 if (!codigo) {
                     console.warn('Campo de código está vazio.');
@@ -68,7 +64,7 @@
                 }
 
                 loadingIndicator.show();
-                console.log('Indicador de carregamento exibido.');
+                console.log('Enviando requisição para validação do código.');
 
                 // Envia requisição AJAX para validação
                 $.ajax({
@@ -81,22 +77,13 @@
                         form_type: formType,
                         _wpnonce: szConectarAjax.nonce,
                     },
-                    beforeSend: function () {
-                        console.log('Requisição AJAX enviada:', {
-                            action: 'validate_access_code',
-                            codigo: codigo,
-                            form_type: formType,
-                            _wpnonce: szConectarAjax.nonce,
-                        });
-                    },
                 })
                     .done(function (response) {
                         loadingIndicator.hide();
-                        console.log('Resposta recebida:', response);
+                        console.log('Resposta da validação recebida:', response);
 
                         if (response.success) {
-                            console.info('Código validado com sucesso:', response.data.message);
-                            console.log('Usuários que já usaram este código:', response.data.total_users);
+                            console.info('Código validado com sucesso.');
                             codigoMessage.text(response.data.message).css('color', 'green');
                             codigoField.css({ borderColor: 'green' });
                             isCodeValid = true;
@@ -117,7 +104,6 @@
                     });
             });
 
-            // Evento de submissão do formulário
             form.on('submit', function (e) {
                 console.log('Evento de submissão acionado.');
 
@@ -140,6 +126,7 @@
         const resultMessage = $('#result-message');
 
         function carregarCharada(grupoId) {
+            console.log('Carregando charada para o grupo:', grupoId);
             $.ajax({
                 url: szConectarAjax.ajaxurl,
                 type: 'POST',
@@ -153,6 +140,7 @@
                 },
                 success: function (response) {
                     if (response.success) {
+                        console.log('Charada carregada com sucesso:', response.data);
                         const charadaHtml = `
                             <input type="hidden" name="charada_id" value="${response.data.id}">
                             <p><strong>Charada:</strong> ${response.data.pergunta}</p>
@@ -161,10 +149,12 @@
                         `;
                         charadaContainer.html(charadaHtml);
                     } else {
+                        console.warn('Nenhuma charada disponível:', response.data);
                         charadaContainer.html(`<p>${response.data}</p>`);
                     }
                 },
                 error: function () {
+                    console.error('Erro ao carregar a charada.');
                     charadaContainer.html('<p>Erro ao carregar a charada. Tente novamente mais tarde.</p>');
                 },
             });
@@ -175,6 +165,8 @@
 
             const resposta = charadaForm.find('input[name="resposta"]').val();
             const charadaId = charadaForm.find('input[name="charada_id"]').val();
+
+            console.log('Enviando resposta para validação:', { resposta, charadaId });
 
             if (!resposta || !charadaId) {
                 resultMessage.html('<p style="color: red;">Por favor, preencha a resposta.</p>');
@@ -195,16 +187,22 @@
                 },
                 success: function (response) {
                     loadingMessage.hide();
+                    console.log('Resposta da charada recebida:', response);
 
                     if (response.success) {
                         resultMessage.html('<p style="color: green;">Resposta correta!</p>');
+                        console.log('Resposta correta! Liberando elementos bloqueados.');
+                        $('#audiobook, #ebook').show(); // Desbloqueia os elementos
+                        $('#aviso-bloqueio').hide(); // Oculta o aviso de bloqueio
                     } else {
                         resultMessage.html('<p style="color: red;">Resposta incorreta. Tente novamente.</p>');
+                        console.warn('Resposta incorreta.');
                     }
                 },
                 error: function () {
                     loadingMessage.hide();
                     resultMessage.html('<p style="color: red;">Erro ao verificar a resposta. Tente novamente mais tarde.</p>');
+                    console.error('Erro na validação da resposta.');
                 },
             });
         });
