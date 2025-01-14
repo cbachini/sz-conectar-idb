@@ -49,8 +49,10 @@ class Sz_Conectar_Idb_Codes {
 
         // Verifica a validade do código
         if ($code->valid_until !== null && strtotime($code->valid_until) < time()) {
-            // Código expirado: impede o login e retorna um erro
-            return new WP_Error('codigo_expirado', __('Seu código de acesso está expirado. Entre em contato com o suporte.'));
+            // Código expirado: força o logout
+            wp_logout();
+            wp_redirect(home_url()); // Redireciona para a página inicial ou outra URL
+            exit;
         }
 
         return $user; // Código válido, permite o login
