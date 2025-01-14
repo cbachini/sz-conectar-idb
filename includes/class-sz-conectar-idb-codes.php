@@ -60,14 +60,14 @@ class Sz_Conectar_Idb_Codes {
             wp_send_json_error(['message' => 'O código está expirado.']);
         }
 
-        // Conta o número de usuários que já utilizam este código (campo ACF "field_66d09389d5d96")
-        $user_query = new WP_User_Query([
-            'meta_key'   => 'field_66d09389d5d96',
-            'meta_value' => $codigo,
-            'fields'     => 'ID' // Retorna apenas os IDs dos usuários
-        ]);
-
-        $total_usuarios = count($user_query->get_results());
+        // Conta o número de usuários que já utilizam este código (campo ACF "codigo")
+        $total_usuarios = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value = %s",
+                'codigo',
+                $codigo
+            )
+        );
 
         // Resposta de sucesso
         wp_send_json_success([
@@ -84,20 +84,20 @@ class Sz_Conectar_Idb_Codes {
         global $wpdb;
 
         // Recupera o código do usuário a partir do campo ACF
-        $codigo = get_field('field_66d09389d5d96', 'user_' . $user_id);
+        $codigo = get_field('codigo', 'user_' . $user_id);
 
         if (!$codigo) {
             return; // Se o usuário não tem um código associado, não faz nada
         }
 
         // Conta todos os usuários que possuem este código
-        $user_query = new WP_User_Query([
-            'meta_key'   => 'field_66d09389d5d96',
-            'meta_value' => $codigo,
-            'fields'     => 'ID' // Retorna apenas os IDs dos usuários
-        ]);
-
-        $total_usuarios = count($user_query->get_results());
+        $total_usuarios = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value = %s",
+                'codigo',
+                $codigo
+            )
+        );
 
         // Define a tabela com base no código
         $table_name = $wpdb->prefix . 'sz_access_codes';
