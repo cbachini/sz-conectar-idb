@@ -25,7 +25,7 @@
             return null;
         }
 
-        // Verifica se o campo de código, formulário e botão de submissão estão presentes
+        // Seletor de elementos HTML
         const codigoField = $('#form-field-codigo');
         const form = codigoField.closest('form.elementor-form');
         const submitButton = form.find('button[type="submit"]');
@@ -140,11 +140,12 @@
             console.warn('Elemento(s) necessário(s) não encontrado(s): campo de código, formulário ou botão de submissão.');
         }
 
-        // Nova funcionalidade: Interação com charadas
+        // Função para carregar charada
         const charadaForm = $('#charada-form');
         const charadaContainer = $('#charada-container');
         const loadingMessage = $('#loading-message');
         const resultMessage = $('#result-message');
+        const grupoElement = $('#numero-livro');
 
         function carregarCharada(grupoId) {
             console.log('Carregando charada para o grupo:', grupoId);
@@ -181,6 +182,7 @@
             });
         }
 
+        // Evento de submissão do formulário de charada
         charadaForm.on('submit', function (e) {
             e.preventDefault();
 
@@ -217,7 +219,8 @@
                         $('#audiobook, #ebook').show();
                         $('#aviso-bloqueio, #aviso').hide();
 
-                        criarCookie('conteudo_desbloqueado', 'true', 24); // Cria cookie
+                        const grupoId = grupoElement.text().trim();
+                        criarCookie(`conteudo_desbloqueado_${grupoId}`, 'true', 24); // Cria cookie
                     } else {
                         resultMessage.html('<p style="color: red;">Resposta incorreta. Tente novamente.</p>');
                         console.warn('Resposta incorreta.');
@@ -231,15 +234,21 @@
             });
         });
 
-        carregarCharada(1); // Exemplo: grupo 1
+        if (grupoElement.length) {
+            const grupoId = grupoElement.text().trim();
+            console.log('Grupo identificado:', grupoId);
 
-        const acessoLiberado = obterCookie('conteudo_desbloqueado');
-        if (acessoLiberado) {
-            console.log('Acesso já liberado anteriormente. Desbloqueando conteúdo automaticamente.');
-            $('#audiobook, #ebook').show();
-            $('#aviso-bloqueio, #aviso').hide();
+            const acessoLiberado = obterCookie(`conteudo_desbloqueado_${grupoId}`);
+            if (acessoLiberado) {
+                console.log('Acesso já liberado anteriormente. Desbloqueando conteúdo automaticamente.');
+                $('#audiobook, #ebook').show();
+                $('#aviso-bloqueio, #aviso').hide();
+            } else {
+                console.log('Cookie de acesso não encontrado. Conteúdo bloqueado.');
+                carregarCharada(grupoId);
+            }
         } else {
-            console.log('Cookie de acesso não encontrado. Conteúdo bloqueado.');
+            console.warn('Elemento de grupo (#numero-livro) não encontrado.');
         }
     });
 })(jQuery);
