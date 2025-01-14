@@ -193,7 +193,7 @@
                         resultMessage.html('<p style="color: green;">Resposta correta!</p>');
                         console.log('Resposta correta! Liberando elementos bloqueados.');
                         $('#audiobook, #ebook').show(); // Desbloqueia os elementos
-                        $('#aviso-bloqueio').hide(); // Oculta o aviso de bloqueio
+                        $('#aviso-bloqueio, #aviso').hide(); // Oculta os avisos
                     } else {
                         resultMessage.html('<p style="color: red;">Resposta incorreta. Tente novamente.</p>');
                         console.warn('Resposta incorreta.');
