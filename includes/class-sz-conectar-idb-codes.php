@@ -12,6 +12,10 @@ class Sz_Conectar_Idb_Codes {
 
         // Hook para verificar o código ao logar
         add_filter('wp_authenticate_user', [__CLASS__, 'check_code_expiration_on_login']);
+
+        // Hooks para atualizar current_uses ao criar ou atualizar um usuário
+        add_action('user_register', [__CLASS__, 'update_current_uses_for_all']);
+        add_action('profile_update', [__CLASS__, 'update_current_uses_for_all']);
     }
 
     /**
@@ -127,6 +131,38 @@ class Sz_Conectar_Idb_Codes {
             'remaining_uses' => $code->max_uses - $total_usuarios,
             'total_users' => $total_usuarios // Retorna o total de usuários que utilizaram o código
         ]);
+    }
+
+    /**
+     * Atualiza o campo current_uses para todos os códigos de acesso na tabela.
+     */
+    public static function update_current_uses_for_all() {
+        global $wpdb;
+
+        // Consulta para contar usuários agrupados por código
+        $query = "
+            SELECT meta_value AS access_code, COUNT(*) AS total_users
+            FROM {$wpdb->usermeta}
+            WHERE meta_key = 'codigo'
+            GROUP BY meta_value
+        ";
+        $codes = $wpdb->get_results($query, ARRAY_A);
+
+        if ($codes) {
+            foreach ($codes as $code) {
+                $access_code = $code['access_code'];
+                $total_users = $code['total_users'];
+
+                // Atualiza o campo current_uses na tabela de códigos
+                $wpdb->update(
+                    "{$wpdb->prefix}sz_access_codes", // Tabela de códigos
+                    ['current_uses' => $total_users],
+                    ['access_code' => $access_code],
+                    ['%d'],                           // Tipo do campo atualizado
+                    ['%s']                            // Tipo do campo na condição
+                );
+            }
+        }
     }
 }
 
