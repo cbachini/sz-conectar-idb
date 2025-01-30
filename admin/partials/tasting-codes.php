@@ -1,9 +1,7 @@
 <?php
 /**
  * Partials for the "Códigos de Degustação" admin page.
- *
- * @package    Sz_Conectar_IDB
- * @subpackage Sz_Conectar_IDB/admin/partials
+ * @package Sz_Conectar_IDB
  */
 
 if (!defined('ABSPATH')) {
@@ -20,6 +18,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_tasting_code'])) 
     $max_uses = intval($_POST['max_uses']);
     $valid_until = sanitize_text_field($_POST['valid_until']);
 
+    // Validação no backend para evitar duplicidade
+    $exists_in_access = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}sz_access_codes WHERE access_code = %s", 
+        $access_code
+    ));
+    $exists_in_tasting = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}sz_tasting_codes WHERE access_code = %s", 
+        $access_code
+    ));
+
+    if ($exists_in_access > 0 || $exists_in_tasting > 0) {
+        wp_die(__('O código de acesso já existe. Escolha um código diferente.', 'sz-conectar-idb'));
+    }
+
+    if (!empty($valid_until) && strtotime($valid_until) < time()) {
+        wp_die(__('A data de validade não pode estar no passado.', 'sz-conectar-idb'));
+    }
+
+    // Inserção segura no banco após validações
     if (!empty($school_name) && !empty($access_code)) {
         $wpdb->insert($table_name, [
             'school_name'   => $school_name,
@@ -56,77 +73,31 @@ $codes = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
     <h1><?php echo esc_html(__('Códigos de Degustação', 'sz-conectar-idb')); ?></h1>
 
     <!-- Formulário de Adição -->
-    <form method="post" action="">
+    <form method="post" id="tasting-code-form">
         <h2><?php _e('Adicionar Novo Código', 'sz-conectar-idb'); ?></h2>
         <table class="form-table">
             <tr>
                 <th><?php _e('Nome da Escola', 'sz-conectar-idb'); ?></th>
-                <td><input type="text" name="school_name" class="regular-text" required></td>
+                <td><input type="text" name="school_name" id="school_name" class="regular-text" required></td>
             </tr>
             <tr>
                 <th><?php _e('Código de Acesso', 'sz-conectar-idb'); ?></th>
-                <td><input type="text" name="access_code" class="regular-text" required></td>
+                <td><input type="text" name="access_code" id="access_code" class="regular-text" required></td>
             </tr>
             <tr>
                 <th><?php _e('Máximo de Usos', 'sz-conectar-idb'); ?></th>
-                <td><input type="number" name="max_uses" value="1" class="small-text"></td>
+                <td><input type="number" name="max_uses" value="1" id="max_uses" class="small-text" required></td>
             </tr>
             <tr>
                 <th><?php _e('Válido Até', 'sz-conectar-idb'); ?></th>
-                <td><input type="date" name="valid_until" class="regular-text"></td>
+                <td><input type="date" name="valid_until" id="valid_until" class="regular-text"></td>
             </tr>
         </table>
         <?php submit_button(__('Adicionar Código', 'sz-conectar-idb'), 'primary', 'new_tasting_code'); ?>
     </form>
-
-    <!-- Ações em Lote -->
-    <form method="post" action="">
-        <h2><?php _e('Códigos Existentes', 'sz-conectar-idb'); ?></h2>
-        <div style="margin-bottom: 10px;">
-            <select name="bulk_action" id="bulk-action-select">
-                <option value=""><?php _e('Ações com Selecionados', 'sz-conectar-idb'); ?></option>
-                <option value="activate"><?php _e('Ativar', 'sz-conectar-idb'); ?></option>
-                <option value="deactivate"><?php _e('Desativar', 'sz-conectar-idb'); ?></option>
-            </select>
-            <button type="submit" name="bulk_action_apply" class="button"><?php _e('Aplicar', 'sz-conectar-idb'); ?></button>
-        </div>
-
-        <!-- Tabela -->
-        <table id="tasting-codes-table" class="wp-list-table widefat fixed striped">
-            <thead>
-                <tr>
-                    <th style="width: 2%;"><input type="checkbox" id="select-all"></th>
-                    <th style="width: 5%;"><?php _e('ID', 'sz-conectar-idb'); ?></th>
-                    <th style="width: 25%;"><?php _e('Nome da Escola', 'sz-conectar-idb'); ?></th>
-                    <th><?php _e('Código de Acesso', 'sz-conectar-idb'); ?></th>
-                    <th><?php _e('Máximo de Usos', 'sz-conectar-idb'); ?></th>
-                    <th><?php _e('Usos Atuais', 'sz-conectar-idb'); ?></th>
-                    <th><?php _e('Ativo', 'sz-conectar-idb'); ?></th>
-                    <th><?php _e('Válido Até', 'sz-conectar-idb'); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($codes as $code) : ?>
-                    <tr>
-                        <td><input type="checkbox" name="selected_codes[]" value="<?php echo esc_attr($code->id); ?>"></td>
-                        <td><?php echo esc_html($code->id); ?></td>
-                        <td><?php echo esc_html($code->school_name); ?></td>
-                        <td><?php echo esc_html($code->access_code); ?></td>
-                        <td><?php echo esc_html($code->max_uses); ?></td>
-                        <td><?php echo esc_html($code->current_uses); ?></td>
-                        <td><?php echo $code->is_active ? __('Sim', 'sz-conectar-idb') : __('Não', 'sz-conectar-idb'); ?></td>
-                        <td><?php echo $code->valid_until ? date_i18n('d/m/Y', strtotime($code->valid_until)) : '—'; ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </form>
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
-
 <script>
     jQuery(document).ready(function ($) {
         $('#tasting-codes-table').DataTable({
